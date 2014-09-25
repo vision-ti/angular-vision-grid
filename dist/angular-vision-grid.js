@@ -1,11 +1,16 @@
-'use strict';
+/*
+ * vision-grid-ui
+ * http://github.com/vision-ti/angular-vision-grid
+ * Version: 0.0.1 - 2014-25-09
+ * License: MIT
+ */
 
 angular.module('vision.grid', ['vision.grid.util'])
 
-    /**
-     * Directive para ser utilizada pela coluna ao realizar o sort
-     * Útil para ser utilizada dentro de um headerRenderer customizado
-     */
+/**
+ * Directive para ser utilizada pela coluna ao realizar o sort
+ * Útil para ser utilizada dentro de um headerRenderer customizado
+ */
     .directive('columnSort', [function () {
         return {
             require: '^grid',
@@ -14,9 +19,9 @@ angular.module('vision.grid', ['vision.grid.util'])
         }
     }])
 
-    /**
-     * grid
-     */
+/**
+ * grid
+ */
     .directive('visionGrid', ['vsGridUtil', '$filter', '$timeout', '$window', '$animate',
         function (vsGridUtil, $filter, $timeout, $window, $animate) {
             return {
@@ -718,72 +723,255 @@ angular.module('vision.grid', ['vision.grid.util'])
         }
     ])
 
-    .run(["$templateCache", function($templateCache) {
+    .run(["$templateCache", function ($templateCache) {
 
         $templateCache.put("template/vision/grid/vision-grid.html",
 
-            "<div class=\"row\">\n"+
-            "    <div class=\"vs-grid col-sm-12\">\n"+
-            "        <div class=\"header-footer\" ng-if=\"hasFooterBar()\">\n"+
-            "            <div class=\"vs-header-bar\" ng-include=\"headerBar\" ng-style=\"getHeaderFooterStyle()\"></div>\n"+
-            "        </div>\n"+
-            "        <div class=\"fixed-table-container\" ng-style=\"styleContainer\" class=\"table table-bordered\" tabindex=\"0\" ng-keydown=\"onKeyDown($event)\" ng-keyup=\"onKeyUp($event)\">\n"+
-            "            <div class=\"table-header\">\n"+
-            "                <table class=\"table table-vision\">\n"+
-            "                    <thead>\n"+
-            "                        <tr>\n"+
-            "                           <th ng-repeat=\"column in columns track by $index\"\n"+
-            "                               class=\"vs-grid-column\"\n"+
-            "                               ng-show=\"column.visible\"\n"+
-            "                               ng-style=\"getColumnStyle(column, 'header')\"\n"+
-            "                               ng-class=\"{first: $first}\">\n"+
-            "                                   <div ng-style=\"headerStyle\" ng-show=\"isHeaderRenderer(column)\" ng-include=\"column.headerRenderer\"></div>\n"+
-            "                                   <div ng-style=\"headerStyle\" ng-show=\"!isHeaderRenderer(column)\">\n"+
-            "                                       <span ng-show=\"!column.sortable\" ng-bind=\"column.headerText\"></span>\n"+
-            "                                       <column-sort></column-sort>\n"+
-            "                                   </div>\n"+
-            "                            </th>\n"+
-            "                         </tr>\n"+
-            "                    </thead>\n"+
-            "               </table>\n"+
-            "            </div>\n"+
-            "            <div class=\"fixed-table-container-inner\" scrollbar ng-style=\"styleContainerInner\">\n"+
-            "                <div ng-style=\"viewPortStyle\" style=\"position: relative; display: block;\">\n"+
-            "                    <table class=\"table table-vision\" ng-style=\"tablePortStyle\">\n"+
-            "                        <tbody>\n"+
-            "                           <!--tabindex=\"{{$parent.$parent.$index}}{{$index+1}}\"-->\n"+
-            "                           <tr ng-repeat-start=\"item in renderedProvider track by $index\"\n"+
-            "                               ng-class=\"{rendered:item.isRendered}\"\n"+
-            "                               ng-style=\"getRowStyle(item)\">\n"+
-            "                               <td ng-repeat=\"column in columns track by $index\"\n"+
-            "                                   ng-show=\"column.visible\"\n"+
-            "                                   ng-mousedown=\"selectItem(item, column)\"\n"+
-            "                                   ng-dblclick=\"selectItemDblclick(item, column)\"\n"+
-            "                                   ng-class=\"selectClass(item)\"\n"+
-            "                                   ng-style=\"getColumnStyle(column)\">\n"+
-            "                                     <span ng-show=\"!isItemRenderer(item, column)\" ng-bind-html=\"getItem($parent.$index, item, column)\"></span>\n"+
-            "                                     <div ng-show=\"isItemRenderer(item, column)\" ng-include=\"column.itemRenderer\"></div>\n"+
-            "                               </td>\n"+
-            "                           </tr>\n"+
-            "                           <tr class=\"actions text-left\" ng-show=\"item.expandRowOpened\" ng-repeat-end>\n"+
-            "                               <td ng-include=\"expandRow\" colspan=\"{{columns.length}}\" ></td>\n"+
-            "                           </tr>\n"+
-            "                       </tbody>\n"+
-            "                   </table>\n"+
-            "               </div>\n"+
-            "           </div>\n"+
-            "       </div>\n"+
-            "       <div class=\"header-footer\" ng-if=\"hasFooterBar()\">\n"+
-            "           <div class=\"vs-footer-bar\" ng-include=\"footerBar\" ng-style=\"getHeaderFooterStyle()\"></div>\n"+
-            "       </div>\n"+
-            "   </div>\n"+
-            "</div>"
+                "<div class=\"row\">\n" +
+                "    <div class=\"vs-grid col-sm-12\">\n" +
+                "        <div class=\"header-footer\" ng-if=\"hasFooterBar()\">\n" +
+                "            <div class=\"vs-header-bar\" ng-include=\"headerBar\" ng-style=\"getHeaderFooterStyle()\"></div>\n" +
+                "        </div>\n" +
+                "        <div class=\"fixed-table-container\" ng-style=\"styleContainer\" class=\"table table-bordered\" tabindex=\"0\" ng-keydown=\"onKeyDown($event)\" ng-keyup=\"onKeyUp($event)\">\n" +
+                "            <div class=\"table-header\">\n" +
+                "                <table class=\"table table-vision\">\n" +
+                "                    <thead>\n" +
+                "                        <tr>\n" +
+                "                           <th ng-repeat=\"column in columns track by $index\"\n" +
+                "                               class=\"vs-grid-column\"\n" +
+                "                               ng-show=\"column.visible\"\n" +
+                "                               ng-style=\"getColumnStyle(column, 'header')\"\n" +
+                "                               ng-class=\"{first: $first}\">\n" +
+                "                                   <div ng-style=\"headerStyle\" ng-show=\"isHeaderRenderer(column)\" ng-include=\"column.headerRenderer\"></div>\n" +
+                "                                   <div ng-style=\"headerStyle\" ng-show=\"!isHeaderRenderer(column)\">\n" +
+                "                                       <span ng-show=\"!column.sortable\" ng-bind=\"column.headerText\"></span>\n" +
+                "                                       <column-sort></column-sort>\n" +
+                "                                   </div>\n" +
+                "                            </th>\n" +
+                "                         </tr>\n" +
+                "                    </thead>\n" +
+                "               </table>\n" +
+                "            </div>\n" +
+                "            <div class=\"fixed-table-container-inner\" scrollbar ng-style=\"styleContainerInner\">\n" +
+                "                <div ng-style=\"viewPortStyle\" style=\"position: relative; display: block;\">\n" +
+                "                    <table class=\"table table-vision\" ng-style=\"tablePortStyle\">\n" +
+                "                        <tbody>\n" +
+                "                           <!--tabindex=\"{{$parent.$parent.$index}}{{$index+1}}\"-->\n" +
+                "                           <tr ng-repeat-start=\"item in renderedProvider track by $index\"\n" +
+                "                               ng-class=\"{rendered:item.isRendered}\"\n" +
+                "                               ng-style=\"getRowStyle(item)\">\n" +
+                "                               <td ng-repeat=\"column in columns track by $index\"\n" +
+                "                                   ng-show=\"column.visible\"\n" +
+                "                                   ng-mousedown=\"selectItem(item, column)\"\n" +
+                "                                   ng-dblclick=\"selectItemDblclick(item, column)\"\n" +
+                "                                   ng-class=\"selectClass(item)\"\n" +
+                "                                   ng-style=\"getColumnStyle(column)\">\n" +
+                "                                     <span ng-show=\"!isItemRenderer(item, column)\" ng-bind-html=\"getItem($parent.$index, item, column)\"></span>\n" +
+                "                                     <div ng-show=\"isItemRenderer(item, column)\" ng-include=\"column.itemRenderer\"></div>\n" +
+                "                               </td>\n" +
+                "                           </tr>\n" +
+                "                           <tr class=\"actions text-left\" ng-show=\"item.expandRowOpened\" ng-repeat-end>\n" +
+                "                               <td ng-include=\"expandRow\" colspan=\"{{columns.length}}\" ></td>\n" +
+                "                           </tr>\n" +
+                "                       </tbody>\n" +
+                "                   </table>\n" +
+                "               </div>\n" +
+                "           </div>\n" +
+                "       </div>\n" +
+                "       <div class=\"header-footer\" ng-if=\"hasFooterBar()\">\n" +
+                "           <div class=\"vs-footer-bar\" ng-include=\"footerBar\" ng-style=\"getHeaderFooterStyle()\"></div>\n" +
+                "       </div>\n" +
+                "   </div>\n" +
+                "</div>"
         );
 
         $templateCache.put("template/vision/grid/column-sort.html",
-            "<a ng-if=\"column.sortable\" ng-click=\"sortBy(column.fieldName)\">\n"+
-            "   <span ng-bind=\"column.headerText\"></span>\n"+
-            "   <i ng-class=\"selectSorterClass(column.fieldName)\"></i>\n"+
-            "</a>"
+                "<a ng-if=\"column.sortable\" ng-click=\"sortBy(column.fieldName)\">\n" +
+                "   <span ng-bind=\"column.headerText\"></span>\n" +
+                "   <i ng-class=\"selectSorterClass(column.fieldName)\"></i>\n" +
+                "</a>"
         );
     }]);
+
+
+angular.module('vision.grid.util')
+
+/**
+ * UtilGrid com labelFunction's úteis
+ */
+    .factory('vsGridUtil', ['$filter', 'UtilArray',
+
+        function ($filter, UtilArray) {
+
+            //private
+            var formatNumber = function (useSymbol, number, centsLimit, centsSeparator, thousands_sep) {
+
+                var symbol = "";
+
+                if (useSymbol)
+                    symbol = $locale.NUMBER_FORMATS.CURRENCY_SYM + " ";
+
+                if (thousands_sep == undefined)
+                    thousands_sep = $locale.NUMBER_FORMATS.GROUP_SEP;
+
+                if (centsSeparator == undefined)
+                    centsSeparator = $locale.NUMBER_FORMATS.DECIMAL_SEP;
+
+                var n = number,
+                    c = isNaN(centsLimit) ? 2 : Math.abs(centsLimit), //if decimal is zero we must take it, it means user does not want to show any decimal
+                    d = centsSeparator || '.', //if no decimal separator is passed we use the dot as default decimal separator (we MUST use a decimal separator)
+
+                    t = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep, //if you don't want to use a thousands separator you can pass empty string as thousands_sep value
+
+                    sign = (n < 0) ? '-' : '',
+
+                //extracting the absolute value of the integer part of the number and converting to string
+                    i = parseInt(n = Math.abs(n).toFixed(c)) + '',
+                    j;
+
+                j = ((j = i.length) > 3) ? j % 3 : 0;
+                return symbol + sign + (j ? i.substr(0, j) + t : '') + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : '');
+            };
+
+            //Os labelFunction's abaixo estão sendo setados na grid directive
+            var vsGridUtil = {
+
+                getDefined: function (value, elseValue) {
+                    return angular.isDefined(value) ? value : elseValue;
+                },
+
+                evaluate: function (data, expression) {
+
+                    var expressionPath = expression.split(".");
+
+                    var itemData = data;
+                    for (var i in expressionPath) {
+                        if (itemData != null)
+                            itemData = itemData[expressionPath[i]];
+                    }
+
+                    return itemData;
+                },
+
+                /**
+                 * GridColumnDecimal.labelFunction
+                 * @param item
+                 * @param column
+                 * @returns {string}
+                 */
+                formatDecimal: function (item, column) {
+                    var valueOf = this.evaluate(item, column.fieldName);
+                    if (angular.isDefined(valueOf))
+                        return formatNumber(column.useSymbol, valueOf, column.centsLimit, column.decimalSeparator, column.thousandsSeparator);
+                    else
+                        return '';
+                },
+
+                /**
+                 * GridColumnDate.labelFunction
+                 * @param item
+                 * @param column
+                 */
+                formatDate: function (item, column) {
+                    var valueOf = this.evaluate(item, column.fieldName);
+                    if (typeof valueOf == 'string')
+                        valueOf = new Date(valueOf);
+                    return $filter('date')(valueOf, column.format);
+                },
+
+                /**
+                 * GridColumnEnum.labelFunction
+                 * @param item
+                 * @param column
+                 */
+                formatEnum: function (item, column) {
+                    var valueOf = this.evaluate(item, column.fieldName);
+                    valueOf = UtilArray.getValueOfLabelField(column.provider, column.labelField, column.labelValue, valueOf);
+                    return valueOf == null ? '' : String(valueOf);
+                },
+
+                /**
+                 * GridColumnIdentity.labelFunction
+                 * @param item
+                 * @param column
+                 */
+                formatEntity: function (item, column) {
+                    return this.evaluate(item, [column.fieldName.split('.')[0], column.labelField].join('.'));
+                }
+            };
+
+            return vsGridUtil;
+        }]);
+
+
+/**
+ * GridColumn class definition
+ * @constructor
+ */
+var GridColumn = function (headerText, fieldName, width) {
+
+    this.headerText = headerText;
+    this.fieldName = fieldName;
+    this.sortable = true;
+
+    //function(item, column)
+    this.labelFunction = undefined;
+
+    //path do arquivo .html
+    this.headerRenderer = undefined;
+
+    //path do arquivo .html
+    this.itemRenderer = undefined;
+    this.itemEditor = undefined;
+
+    //px or %
+    this.width = width;
+
+    //left, center, right
+    this.headerTextAlign = 'left';
+    this.textAlign = 'left';
+    this.visible = true;
+};
+
+/**
+ * GridColumnDecimal class definition
+ * @constructor
+ */
+var GridColumnDecimal = function (headerText, fieldName, width) {
+
+    GridColumn.call(this, headerText, fieldName, width);
+
+    this.textAlign = 'right';
+    this.centsLimit = 2;
+    this.centsSeparator = ',';
+    this.thousandsSeparator = '.';
+    this.useSymbol = false;
+};
+GridColumnDecimal.prototype = new GridColumn();
+
+/**
+ * GridColumnDate class definition
+ * @constructor
+ */
+var GridColumnDate = function (headerText, fieldName, width) {
+    GridColumn.call(this, headerText, fieldName, width);
+
+    this.format = 'dd/MM/yyyy';
+};
+GridColumnDate.prototype = new GridColumn();
+
+/**
+ * GridColumnEnum class definition
+ * @param headerText
+ * @param fieldName
+ * @param width
+ * @constructor
+ */
+var GridColumnEnum = function (headerText, fieldName, width) {
+    GridColumn.call(this, headerText, fieldName, width);
+
+    this.labelField = undefined;
+    this.labelValue = undefined;
+    this.provider = [];
+};
+GridColumnEnum.prototype = new GridColumn();
