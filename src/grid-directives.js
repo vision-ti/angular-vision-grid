@@ -10,7 +10,7 @@ angular.module('vision.grid', [])
         return {
             require: '^grid',
             restrict: 'E',
-            templateUrl: 'vision/templates/grid/column-sort.html'
+            templateUrl: 'template/vision/grid/column-sort.html'
         }
     }])
 
@@ -22,7 +22,7 @@ angular.module('vision.grid', [])
             return {
                 restrict: 'E',
                 replace: true,
-                templateUrl: 'vision/templates/grid/vision-grid.html',
+                templateUrl: 'template/vision/grid/vision-grid.html',
                 transclude: true,
                 scope: {
                     init: '&',
@@ -716,4 +716,74 @@ angular.module('vision.grid', [])
                 }
             }
         }
-    ]);
+    ])
+
+    .run(["$templateCache", function($templateCache) {
+
+        $templateCache.put("template/vision/grid/vision-grid.html",
+
+            "<div class=\"row\">\n"+
+            "    <div class=\"vs-grid col-sm-12\">\n"+
+            "        <div class=\"header-footer\" ng-if=\"hasFooterBar()\">\n"+
+            "            <div class=\"vs-header-bar\" ng-include=\"headerBar\" ng-style=\"getHeaderFooterStyle()\"></div>\n"+
+            "        </div>\n"+
+            "        <div class=\"fixed-table-container\" ng-style=\"styleContainer\" class=\"table table-bordered\" tabindex=\"0\" ng-keydown=\"onKeyDown($event)\" ng-keyup=\"onKeyUp($event)\">\n"+
+            "            <div class=\"table-header\">\n"+
+            "                <table class=\"table table-vision\">\n"+
+            "                    <thead>\n"+
+            "                        <tr>\n"+
+            "                           <th ng-repeat=\"column in columns track by $index\"\n"+
+            "                               class=\"vs-grid-column\"\n"+
+            "                               ng-show=\"column.visible\"\n"+
+            "                               ng-style=\"getColumnStyle(column, 'header')\"\n"+
+            "                               ng-class=\"{first: $first}\">\n"+
+            "                                   <div ng-style=\"headerStyle\" ng-show=\"isHeaderRenderer(column)\" ng-include=\"column.headerRenderer\"></div>\n"+
+            "                                   <div ng-style=\"headerStyle\" ng-show=\"!isHeaderRenderer(column)\">\n"+
+            "                                       <span ng-show=\"!column.sortable\" ng-bind=\"column.headerText\"></span>\n"+
+            "                                       <column-sort></column-sort>\n"+
+            "                                   </div>\n"+
+            "                            </th>\n"+
+            "                         </tr>\n"+
+            "                    </thead>\n"+
+            "               </table>\n"+
+            "            </div>\n"+
+            "            <div class=\"fixed-table-container-inner\" scrollbar ng-style=\"styleContainerInner\">\n"+
+            "                <div ng-style=\"viewPortStyle\" style=\"position: relative; display: block;\">\n"+
+            "                    <table class=\"table table-vision\" ng-style=\"tablePortStyle\">\n"+
+            "                        <tbody>\n"+
+            "                           <!--tabindex=\"{{$parent.$parent.$index}}{{$index+1}}\"-->\n"+
+            "                           <tr ng-repeat-start=\"item in renderedProvider track by $index\"\n"+
+            "                               ng-class=\"{rendered:item.isRendered}\"\n"+
+            "                               ng-style=\"getRowStyle(item)\">\n"+
+            "                               <td ng-repeat=\"column in columns track by $index\"\n"+
+            "                                   ng-show=\"column.visible\"\n"+
+            "                                   ng-mousedown=\"selectItem(item, column)\"\n"+
+            "                                   ng-dblclick=\"selectItemDblclick(item, column)\"\n"+
+            "                                   ng-class=\"selectClass(item)\"\n"+
+            "                                   ng-style=\"getColumnStyle(column)\">\n"+
+            "                                     <span ng-show=\"!isItemRenderer(item, column)\" ng-bind-html=\"getItem($parent.$index, item, column)\"></span>\n"+
+            "                                     <div ng-show=\"isItemRenderer(item, column)\" ng-include=\"column.itemRenderer\"></div>\n"+
+            "                               </td>\n"+
+            "                           </tr>\n"+
+            "                           <tr class=\"actions text-left\" ng-show=\"item.expandRowOpened\" ng-repeat-end>\n"+
+            "                               <td ng-include=\"expandRow\" colspan=\"{{columns.length}}\" ></td>\n"+
+            "                           </tr>\n"+
+            "                       </tbody>\n"+
+            "                   </table>\n"+
+            "               </div>\n"+
+            "           </div>\n"+
+            "       </div>\n"+
+            "       <div class=\"header-footer\" ng-if=\"hasFooterBar()\">\n"+
+            "           <div class=\"vs-footer-bar\" ng-include=\"footerBar\" ng-style=\"getHeaderFooterStyle()\"></div>\n"+
+            "       </div>\n"+
+            "   </div>\n"+
+            "</div>"
+        );
+
+        $templateCache.put("template/vision/grid/column-sort.html",
+            "<a ng-if=\"column.sortable\" ng-click=\"sortBy(column.fieldName)\">\n"+
+            "   <span ng-bind=\"column.headerText\"></span>\n"+
+            "   <i ng-class=\"selectSorterClass(column.fieldName)\"></i>\n"+
+            "</a>"
+        );
+    }]);
