@@ -1,4 +1,4 @@
 angular-vision-grid
 ===================
 
-The awesome angularjs grid directive
+An awesome angularjs grid directive
