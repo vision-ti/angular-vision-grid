@@ -1,5 +1,5 @@
 /*
- * vision-grid-ui
+ * angular-vision-grid
  * http://github.com/vision-ti/angular-vision-grid
  * Version: 0.0.1 - 2014-25-09
  * License: MIT
