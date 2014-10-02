@@ -418,7 +418,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                         } else
                             valueOf = vsGridUtil.evaluate(item, column.fieldName);
 
-                        return angular.isDefined(valueOf) ? valueOf.toString() : '';
+                        return valueOf != undefined ? valueOf.toString() : '';
                     };
 
                     /**
@@ -684,7 +684,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                     scope.setExpandRowUrl = function (expandRowUrl) {
 
                         scope.expandRow = expandRowUrl;
-                        attrs.expandColumnRenderer = vsGridUtil.getDefined(scope.expandColumnRenderer, 'vision/templates/grid/expandColumnRenderer.html');
+                        attrs.expandColumnRenderer = vsGridUtil.getDefined(scope.expandColumnRenderer, 'template/vision/grid/expandColumnRenderer.html');
 
                         var expandColumn = new GridColumn();
                         expandColumn.fieldName = 'expandColumn';
@@ -786,4 +786,11 @@ angular.module('vision.grid', ['vision.grid.util'])
             "   <i ng-class=\"selectSorterClass(column.fieldName)\"></i>\n"+
             "</a>"
         );
+
+        $templateCache.put("template/vision/grid/expandColumnRenderer.html",
+            "<a class=\"expand-row\" ng-click=\"openCloseExpandRow(item)\">\n" +
+            "   <i class=\"fa\" ng-class=\"{'fa-chevron-right': !item.expandRowOpened, 'fa-chevron-down': item.expandRowOpened}\"></i>\n" +
+            "</a>"
+        );
+
     }]);
