@@ -1,7 +1,7 @@
 {
     "name": "angular-vision-grid",
     "version": "0.0.1-beta",
-    "main": "angular-vision-grid.js",
+    "main": "dist/angular-vision-grid.js",
     "repository": {
         "type": "git",
         "url": "https://github.com/vision-ti/angular-vision-grid.git"
