@@ -1,16 +1,84 @@
-/*
- * angular-vision-grid
- * http://github.com/vision-ti/angular-vision-grid
- * Version: 0.0.1 - 2014-25-09
- * License: MIT
+'use strict';
+
+/**
+ * GridColumn class definition
+ * @constructor
  */
+var GridColumn = function(headerText, fieldName, width){
+
+    this.headerText = headerText;
+    this.fieldName = fieldName;
+    this.sortable = true;
+
+    //function(item, column)
+    this.labelFunction = undefined;
+
+    //path do arquivo .html
+    this.headerRenderer = undefined;
+
+    //path do arquivo .html
+    this.itemRenderer = undefined;
+    this.itemEditor = undefined;
+
+    //px or %
+    this.width = width;
+
+    //left, center, right
+    this.headerTextAlign = 'left';
+    this.textAlign = 'left';
+    this.visible = true;
+};
+
+/**
+ * GridColumnDecimal class definition
+ * @constructor
+ */
+var GridColumnDecimal = function(headerText, fieldName, width){
+
+    GridColumn.call(this, headerText, fieldName, width);
+
+    this.textAlign = 'right';
+    this.centsLimit = 2;
+    this.centsSeparator = ',';
+    this.thousandsSeparator = '.';
+    this.useSymbol = false;
+};
+GridColumnDecimal.prototype = new GridColumn();
+
+/**
+ * GridColumnDate class definition
+ * @constructor
+ */
+var GridColumnDate = function(headerText, fieldName, width){
+    GridColumn.call(this, headerText, fieldName, width);
+
+    this.format = 'dd/MM/yyyy';
+};
+GridColumnDate.prototype = new GridColumn();
+
+/**
+ * GridColumnEnum class definition
+ * @param headerText
+ * @param fieldName
+ * @param width
+ * @constructor
+ */
+var GridColumnEnum = function(headerText, fieldName, width){
+    GridColumn.call(this, headerText, fieldName, width);
+
+    this.labelField = undefined;
+    this.labelValue = undefined;
+    this.provider = [];
+};
+GridColumnEnum.prototype = new GridColumn();
+'use strict';
 
 angular.module('vision.grid', ['vision.grid.util'])
 
-/**
- * Directive para ser utilizada pela coluna ao realizar o sort
- * Útil para ser utilizada dentro de um headerRenderer customizado
- */
+    /**
+     * Directive para ser utilizada pela coluna ao realizar o sort
+     * Útil para ser utilizada dentro de um headerRenderer customizado
+     */
     .directive('columnSort', [function () {
         return {
             require: '^grid',
@@ -19,9 +87,9 @@ angular.module('vision.grid', ['vision.grid.util'])
         }
     }])
 
-/**
- * grid
- */
+    /**
+     * grid
+     */
     .directive('visionGrid', ['vsGridUtil', '$filter', '$timeout', '$window', '$animate',
         function (vsGridUtil, $filter, $timeout, $window, $animate) {
             return {
@@ -156,6 +224,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                 }],
                 link: function (scope, element, attrs, ctrl) {
 
+
                     var userAgent = $window.navigator.userAgent.toLowerCase();
                     var isFirefox = userAgent.indexOf('firefox') > -1;
                     var isOpera = userAgent.indexOf('opera') > -1;
@@ -166,7 +235,10 @@ angular.module('vision.grid', ['vision.grid.util'])
                     //Define se a expand-row será mantida aberta
                     scope.toggleExpandRow = vsGridUtil.getDefined(scope.toggleExpandRow, true);
 
-                    scope.gridName = vsGridUtil.getDefined(attrs.name, "grid");
+                    scope.gridName = vsGridUtil.getDefined(attrs.name, 'grid');
+
+                    //Cria uma referência do ctrl no scope do elemento parent
+                    angular.element(element[0].parentElement).scope()[scope.gridName] = ctrl;
 
                     /**
                      * Será a cópia do provider
@@ -210,9 +282,9 @@ angular.module('vision.grid', ['vision.grid.util'])
 
                     scope.styleContainer = {};
                     scope.styleContainerInner = {};
-                    if (scope.virtualScrollEnabled){
+                    if (scope.virtualScrollEnabled) {
                         scope.styleContainer.height = attrs.height;
-                        scope.styleContainerInner.height =  (height - headerHeight)  + 'px';
+                        scope.styleContainerInner.height = (height - headerHeight) + 'px';
                     }
 
                     var innerContainer = element.find('.fixed-table-container-inner');
@@ -223,13 +295,13 @@ angular.module('vision.grid', ['vision.grid.util'])
                     var raw = innerContainer[0];
 
                     var rangeStart, rangeEnd;
-                    innerContainer.scroll(function(event){
+                    innerContainer.scroll(function (event) {
 
                         //Header scroll(horizontal)
-                        if (headerBar == null && footerBar == null){
+                        if (headerBar == null && footerBar == null) {
                             headerBar = element.find('.vs-header-bar');
                             footerBar = element.find('.vs-footer-bar');
-                        }else{
+                        } else {
                             headerBar.offset({ left: (-1 * this.scrollLeft) + innerContainer.offset().left});
                             footerBar.offset({ left: (-1 * this.scrollLeft) + innerContainer.offset().left});
                         }
@@ -239,8 +311,8 @@ angular.module('vision.grid', ['vision.grid.util'])
                             //Virtual scroll(vertical)
                             rangeStart = Math.ceil(raw.scrollTop / rowHeight);
                             rangeEnd = Math.ceil((raw.scrollTop + raw.offsetHeight) / rowHeight);
-                            if (raw.scrollTop + raw.offsetHeight <= viewPortHeight){
-                                scope.tablePortStyle.top = raw.scrollTop + "px";
+                            if (raw.scrollTop + raw.offsetHeight <= viewPortHeight) {
+                                scope.tablePortStyle.top = raw.scrollTop + 'px';
                                 scope.$apply(scope.renderProvider(scope.gridProvider.slice(rangeStart, rangeEnd)));
                             }
                         }
@@ -251,7 +323,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * Return virtual rows lenght to render rows with no-data, for visual aspect
                      * @returns {number}
                      */
-                    var getVirtualRowsLength = function(){
+                    var getVirtualRowsLength = function () {
                         return scope.virtualScrollEnabled ? Math.ceil((height - headerHeight) / rowHeight) : scope.gridProvider.length;
                     };
 
@@ -259,11 +331,11 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * Update virtual scroll height
                      * @param height
                      */
-                    scope.updateHeight = function(value){
+                    scope.updateHeight = function (value) {
 
                         height = value;
                         scope.styleContainer.height = height + 'px';
-                        scope.styleContainerInner.height =  (height - headerHeight)  + 'px';
+                        scope.styleContainerInner.height = (height - headerHeight) + 'px';
 
                         scope.renderProvider(scope.gridProvider, getVirtualRowsLength());
                         scope.$apply();
@@ -272,18 +344,17 @@ angular.module('vision.grid', ['vision.grid.util'])
                     /**
                      * Adiciona as rows a serem renderizadas
                      */
-                    scope.renderProvider = function(rows, length){
+                    scope.renderProvider = function (rows, length) {
 
-                        if (length == undefined){
+                        if (length == undefined) {
                             length = rows.length;
                         }
 
                         scope.renderedProvider.length = length;
-                        for (var i = 0; i < length || i < minRows; i++){
+                        for (var i = 0; i < length || i < minRows; i++) {
                             if (angular.isDefined(rows[i])) {
                                 scope.renderedProvider[i] = rows[i];
-                                scope.renderedProvider[i].isRendered = true;
-                            }else{
+                            } else {
                                 scope.renderedProvider[i] = {};
                             }
                         }
@@ -292,7 +363,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                     /**
                      * Atualiza o gridProvider
                      */
-                    scope.$watch('provider', function(newValue, oldValue){
+                    scope.$watch('provider', function (newValue, oldValue) {
 
                         clearSelection();
                         //Realiza a cópia do provider
@@ -304,13 +375,13 @@ angular.module('vision.grid', ['vision.grid.util'])
                         //$animate.enter(spinner, element);
 
                         //Faz o cálculo do height da viewPort para virtual scroll
-                        if (scope.virtualScrollEnabled && vsGridUtil.isValorPreenchido(newValue) && newValue.length > 0){
+                        if (scope.virtualScrollEnabled && angular.isDefined(newValue) && newValue.length > 0) {
                             viewPortHeight = newValue.length * rowHeight;
-                            scope.viewPortStyle.height = viewPortHeight + "px";
+                            scope.viewPortStyle.height = viewPortHeight + 'px';
                         }
 
                         if (oldValue == undefined || newValue == undefined || newValue.length != oldValue.length) {
-                            $timeout(function() {
+                            $timeout(function () {
                                 raw.scrollTop = 0;
                                 innerContainer.scroll();
                             });
@@ -320,7 +391,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                     /**
                      * Atualiza o renderedProvider
                      */
-                    scope.$watch('gridProvider', function(value){
+                    scope.$watch('gridProvider', function (value) {
 
                         //Desenha as rows (desenha rows virtuais sem dados no caso de virtualScrollEnabled)
                         scope.renderProvider(scope.gridProvider, getVirtualRowsLength());
@@ -334,22 +405,22 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * @param item
                      * @returns {{}}
                      */
-                    scope.getRowStyle = function(item){
+                    scope.getRowStyle = function (item) {
 
                         var rowStyle = {};
                         rowStyle.height = scope.rowHeight;
 
                         //Desenha a cor de fundo da row por uma propriedade de um item do provider
-                        if (angular.isDefined(scope.rowColorField)){
+                        if (angular.isDefined(scope.rowColorField)) {
                             var color = vsGridUtil.evaluate(item, scope.rowColorField);
-                            if (vsGridUtil.isValorPreenchido(color))
+                            if (angular.isDefined(color))
                                 rowStyle.backgroundColor = color;
                         }
 
                         //Desenha a cor de fundo de acordo com uma function
-                        if (angular.isDefined(attrs.rowColorFunction)){
+                        if (angular.isDefined(attrs.rowColorFunction)) {
                             var color = scope.rowColorFunction({$item: item});
-                            if (vsGridUtil.isValorPreenchido(color))
+                            if (angular.isDefined(color))
                                 rowStyle.backgroundColor = color;
                         }
 
@@ -360,20 +431,19 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * Configura o style da coluna
                      * @param column
                      */
-                    scope.getColumnStyle = function(column, position){
+                    scope.getColumnStyle = function (column, position) {
 
                         var columnStyle = {};
-                        if (position == 'header'){
+                        if (position == 'header') {
                             columnStyle.textAlign = column.headerTextAlign;
-                        }else{
+                        } else {
                             columnStyle.textAlign = column.textAlign;
                         }
 
                         if (angular.isDefined(column.width))
                             columnStyle.width = column.width;
-                        else
-                        {
-                            columnStyle.minWidth = "80px";
+                        else {
+                            columnStyle.minWidth = '80px';
                             columnStyle.width = 'auto !important';
                         }
 
@@ -386,27 +456,26 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * @param index
                      * @param column
                      */
-                    scope.addColumnAt = function(index, column){
+                    scope.addColumnAt = function (index, column) {
 
-                        if (column instanceof GridColumnDecimal  && !angular.isDefined(column.labelFunction)){
-                            column.labelFunction = UtilGrid.formatDecimal;
+                        if (column instanceof GridColumnDecimal && !angular.isDefined(column.labelFunction)) {
+                            column.labelFunction = vsGridUtil.formatDecimal;
                         }
 
-                        if (column instanceof GridColumnDate  && !angular.isDefined(column.labelFunction)){
-                            column.labelFunction = UtilGrid.formatDate;
+                        if (column instanceof GridColumnDate && !angular.isDefined(column.labelFunction)) {
+                            column.labelFunction = vsGridUtil.formatDate;
                         }
 
-                        if (column instanceof GridColumnEnum  && !angular.isDefined(column.labelFunction)){
-                            column.labelFunction = UtilGrid.formatEnum;
+                        if (column instanceof GridColumnEnum && !angular.isDefined(column.labelFunction)) {
+                            column.labelFunction = vsGridUtil.formatEnum;
                         }
 
                         /**
                          * Evento disparado no $rootScope para configuração
                          * de labelFunction de implementações de outras colunas
                          */
-                        $rootScope.$broadcast('grid:addColumn', column);
-
-                        UtilArray.addAt(scope.columns, index, column);
+                        scope.$emit('grid:addColumn', column);
+                        scope.columns.splice(index, 0, column);
                     };
 
                     /**
@@ -418,14 +487,12 @@ angular.module('vision.grid', ['vision.grid.util'])
                     scope.getItem = function ($index, item, column) {
                         var valueOf;
 
-                        if (item.isRendered){
-                            if (angular.isFunction(column.labelFunction)) {
-                                valueOf = column.labelFunction(item, column, $index);
-                            } else
-                                valueOf = vsGridUtil.evaluate(item, column.fieldName);
-                        }
+                        if (angular.isFunction(column.labelFunction)) {
+                            valueOf = column.labelFunction(item, column, $index);
+                        } else
+                            valueOf = vsGridUtil.evaluate(item, column.fieldName);
 
-                        return vsGridUtil.isValorPreenchido(valueOf) ? valueOf.toString() : "";
+                        return valueOf != undefined ? valueOf.toString() : '';
                     };
 
                     /**
@@ -433,7 +500,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * @param column
                      * @returns {boolean|*}
                      */
-                    scope.isHeaderRenderer = function(column){
+                    scope.isHeaderRenderer = function (column) {
                         return angular.isDefined(column.headerRenderer);
                     };
 
@@ -443,18 +510,17 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * @returns {boolean}
                      */
                     scope.isItemRenderer = function (item, column) {
-                        if (item.isRendered)
-                            return angular.isDefined(column.itemRenderer);
+                        return angular.isDefined(column.itemRenderer);
                     };
 
                     /**
                      * Dispara o double-click
                      */
-                    scope.selectItemDblclick = function(item, column){
+                    scope.selectItemDblclick = function (item, column) {
 
                         scope.selectItem(item, column);
 
-                        if (attrs.itemDoubleClick){
+                        if (attrs.itemDoubleClick) {
                             scope.itemDoubleClick({$data: getData()});
                         }
                         scope.$emit(scope.gridName + ':itemDoubleClick', getData());
@@ -471,7 +537,7 @@ angular.module('vision.grid', ['vision.grid.util'])
 
                         scope.columnSelected = column;
 
-                        if (!angular.isDefined(item) || !item.isRendered)
+                        if (!angular.isDefined(item))
                             return;
 
                         scope.selectedIndex = scope.provider.indexOf(item);
@@ -499,7 +565,7 @@ angular.module('vision.grid', ['vision.grid.util'])
 
                             if (scope.selectedItems.indexOf(item) == -1)
                                 scope.selectedItems.push(item);
-                            else{
+                            else {
                                 var indexOf = scope.selectedItems.indexOf(item);
                                 scope.selectedItems.splice(indexOf, 1);
                             }
@@ -522,7 +588,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * Object com a informação do item selecionado na grid
                      * @returns {{}}
                      */
-                    var getData = function(){
+                    var getData = function () {
                         var $data = {};
                         $data.selectedIndex = scope.selectedIndex;
                         $data.selectedItem = scope.selectedItem;
@@ -535,7 +601,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * Limpa a seleção
                      * @private
                      */
-                    var clearSelection = function(){
+                    var clearSelection = function () {
                         scope.selectedItems = [];
                         scope.selectedItem = null;
                         scope.selectedIndex = null;
@@ -550,9 +616,9 @@ angular.module('vision.grid', ['vision.grid.util'])
                     scope.selectClass = function (item) {
                         if ((item == scope.selectedItem && scope.selectionMode == 'single')
                             || (scope.selectedItems.indexOf(item) != -1 && scope.selectionMode == 'multiple')) {
-                            return "selected-item";
+                            return 'selected-item';
                         } else
-                            return "";
+                            return '';
                     };
 
                     /**
@@ -560,12 +626,41 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * @param $event
                      */
                     scope.onKeyDown = function ($event) {
-                        if (scope.selectionMode == 'multiple'){
+
+                        if ($event.keyCode == 38 || $event.keyCode == 40) {
+
+                            if (virtualIndex == undefined)
+                                virtualIndex = -1;
+
+                            //up key
+                            if ($event.keyCode == 38) {
+
+                                if (virtualIndex < 0) {
+                                    virtualIndex = 0
+                                } else if (virtualIndex > 0) {
+                                    virtualIndex--;
+                                }
+                            }
+
+                            //down key
+                            if ($event.keyCode == 40) {
+
+                                if (virtualIndex > scope.gridProvider.length) {
+                                    virtualIndex = scope.gridProvider.length;
+                                } else if (virtualIndex < scope.gridProvider.length) {
+                                    virtualIndex++;
+                                }
+                            }
+
+                            scope.selectItem(scope.gridProvider[virtualIndex], scope.selectedColumn);
+                        }
+
+                        if (scope.selectionMode == 'multiple') {
                             scope.shiftKey = $event.shiftKey;
                             scope.ctrlKey = $event.ctrlKey || $event.keyCode == commandKeyCode;
                         }
 
-                        scope.$emit(scope.gridName + ":onKeyDown", $event);
+                        scope.$emit(scope.gridName + ':onKeyDown', $event);
                     };
 
                     /**
@@ -573,14 +668,14 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * @param $event
                      */
                     scope.onKeyUp = function ($event) {
-                        if (scope.selectionMode == 'multiple'){
+                        if (scope.selectionMode == 'multiple') {
                             scope.shiftKey = $event.shiftKey;
                             scope.ctrlKey = $event.ctrlKey;
                             if ($event.keyCode == commandKeyCode)
                                 scope.ctrlKey = false;
                         }
 
-                        scope.$emit(scope.gridName + ":onKeyUp", $event);
+                        scope.$emit(scope.gridName + ':onKeyUp', $event);
                     };
 
                     //Sort object
@@ -614,14 +709,14 @@ angular.module('vision.grid', ['vision.grid.util'])
                         }
 
                         scope.sort.sortingField = newSortingField;
-                        scope.gridProvider = $filter("orderBy")(scope.provider, scope.sort.sortingField, scope.sort.reverse);
+                        scope.gridProvider = $filter('orderBy')(scope.provider, scope.sort.sortingField, scope.sort.reverse);
                     };
 
                     /**
                      * Verifica se tem headerBar
                      * @returns {boolean|*}
                      */
-                    scope.hasHeaderBar = function(){
+                    scope.hasHeaderBar = function () {
                         return angular.isDefined(attrs.headerBar);
                     };
 
@@ -629,7 +724,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * Verifica se tem footerBar
                      * @returns {boolean|*}
                      */
-                    scope.hasFooterBar = function(){
+                    scope.hasFooterBar = function () {
                         return angular.isDefined(attrs.footerBar);
                     };
 
@@ -637,18 +732,18 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * Style header-footer
                      */
                     var headerFooterStyle = {};
-                    scope.getHeaderFooterStyle = function(){
+                    scope.getHeaderFooterStyle = function () {
                         headerFooterStyle.width = innerContainer[0].scrollWidth;
                         return headerFooterStyle;
                     };
 
                     //Função disparada pelo expandColumnRenderer
-                    scope.openCloseExpandRow = function(item){
+                    scope.openCloseExpandRow = function (item) {
 
                         item.expandRowOpened = !item.expandRowOpened;
 
-                        if (scope.toggleExpandRow){
-                            angular.forEach(scope.renderedProvider, function(value, index){
+                        if (scope.toggleExpandRow) {
+                            angular.forEach(scope.renderedProvider, function (value, index) {
                                 if (value != item)
                                     value.expandRowOpened = false;
                             });
@@ -660,10 +755,10 @@ angular.module('vision.grid', ['vision.grid.util'])
                     /**
                      * Configura a expandRow
                      */
-                    scope.setExpandRowUrl = function(expandRowUrl) {
+                    scope.setExpandRowUrl = function (expandRowUrl) {
 
                         scope.expandRow = expandRowUrl;
-                        attrs.expandColumnRenderer = vsGridUtil.getDefined(scope.expandColumnRenderer, 'vision/templates/grid/expandColumnRenderer.html');
+                        attrs.expandColumnRenderer = vsGridUtil.getDefined(scope.expandColumnRenderer, 'template/vision/grid/expandColumnRenderer.html');
 
                         var expandColumn = new GridColumn();
                         expandColumn.fieldName = 'expandColumn';
@@ -671,24 +766,22 @@ angular.module('vision.grid', ['vision.grid.util'])
                         expandColumn.textAlign = 'center';
                         expandColumn.itemRenderer = attrs.expandColumnRenderer;
 
-                        if (angular.isDefined(scope.expandColumnHeader)){
+                        if (angular.isDefined(scope.expandColumnHeader)) {
                             expandColumn.headerText = scope.expandColumnHeader;
                         }
 
                         scope.addColumnAt(0, expandColumn);
                     };
 
-                    if (vsGridUtil.isValorPreenchido(scope.expandRowUrl))
+                    if (angular.isDefined(scope.expandRowUrl))
                         scope.setExpandRowUrl(scope.expandRowUrl);
 
                     /**
                      * Dispara o método config para inicializar as colunas
                      */
-                    if (angular.isDefined(attrs.init)){
+                    if (angular.isDefined(attrs.init)) {
                         scope.init({$ctrl: ctrl});
-                        $timeout(function(){
-                            scope.$emit(scope.gridName + ':init', ctrl);
-                        });
+                        scope.$emit(scope.gridName + ':init', {$ctrl: ctrl});
                     }
 
                     //$timeout(function(){
@@ -700,83 +793,83 @@ angular.module('vision.grid', ['vision.grid.util'])
         }
     ])
 
-    .run(["$templateCache", function ($templateCache) {
+    .run(["$templateCache", function($templateCache) {
 
         $templateCache.put("template/vision/grid/vision-grid.html",
 
-                "<div class=\"row\">\n" +
-                "    <div class=\"vs-grid col-sm-12\">\n" +
-                "        <div class=\"header-footer\" ng-if=\"hasFooterBar()\">\n" +
-                "            <div class=\"vs-header-bar\" ng-include=\"headerBar\" ng-style=\"getHeaderFooterStyle()\"></div>\n" +
-                "        </div>\n" +
-                "        <div class=\"fixed-table-container\" ng-style=\"styleContainer\" class=\"table table-bordered\" tabindex=\"0\" ng-keydown=\"onKeyDown($event)\" ng-keyup=\"onKeyUp($event)\">\n" +
-                "            <div class=\"table-header\">\n" +
-                "                <table class=\"table table-vision\">\n" +
-                "                    <thead>\n" +
-                "                        <tr>\n" +
-                "                           <th ng-repeat=\"column in columns track by $index\"\n" +
-                "                               class=\"vs-grid-column\"\n" +
-                "                               ng-show=\"column.visible\"\n" +
-                "                               ng-style=\"getColumnStyle(column, 'header')\"\n" +
-                "                               ng-class=\"{first: $first}\">\n" +
-                "                                   <div ng-style=\"headerStyle\" ng-show=\"isHeaderRenderer(column)\" ng-include=\"column.headerRenderer\"></div>\n" +
-                "                                   <div ng-style=\"headerStyle\" ng-show=\"!isHeaderRenderer(column)\">\n" +
-                "                                       <span ng-show=\"!column.sortable\" ng-bind=\"column.headerText\"></span>\n" +
-                "                                       <column-sort></column-sort>\n" +
-                "                                   </div>\n" +
-                "                            </th>\n" +
-                "                         </tr>\n" +
-                "                    </thead>\n" +
-                "               </table>\n" +
-                "            </div>\n" +
-                "            <div class=\"fixed-table-container-inner\" scrollbar ng-style=\"styleContainerInner\">\n" +
-                "                <div ng-style=\"viewPortStyle\" style=\"position: relative; display: block;\">\n" +
-                "                    <table class=\"table table-vision\" ng-style=\"tablePortStyle\">\n" +
-                "                        <tbody>\n" +
-                "                           <!--tabindex=\"{{$parent.$parent.$index}}{{$index+1}}\"-->\n" +
-                "                           <tr ng-repeat-start=\"item in renderedProvider track by $index\"\n" +
-                "                               ng-class=\"{rendered:item.isRendered}\"\n" +
-                "                               ng-style=\"getRowStyle(item)\">\n" +
-                "                               <td ng-repeat=\"column in columns track by $index\"\n" +
-                "                                   ng-show=\"column.visible\"\n" +
-                "                                   ng-mousedown=\"selectItem(item, column)\"\n" +
-                "                                   ng-dblclick=\"selectItemDblclick(item, column)\"\n" +
-                "                                   ng-class=\"selectClass(item)\"\n" +
-                "                                   ng-style=\"getColumnStyle(column)\">\n" +
-                "                                     <span ng-show=\"!isItemRenderer(item, column)\" ng-bind-html=\"getItem($parent.$index, item, column)\"></span>\n" +
-                "                                     <div ng-show=\"isItemRenderer(item, column)\" ng-include=\"column.itemRenderer\"></div>\n" +
-                "                               </td>\n" +
-                "                           </tr>\n" +
-                "                           <tr class=\"actions text-left\" ng-show=\"item.expandRowOpened\" ng-repeat-end>\n" +
-                "                               <td ng-include=\"expandRow\" colspan=\"{{columns.length}}\" ></td>\n" +
-                "                           </tr>\n" +
-                "                       </tbody>\n" +
-                "                   </table>\n" +
-                "               </div>\n" +
-                "           </div>\n" +
-                "       </div>\n" +
-                "       <div class=\"header-footer\" ng-if=\"hasFooterBar()\">\n" +
-                "           <div class=\"vs-footer-bar\" ng-include=\"footerBar\" ng-style=\"getHeaderFooterStyle()\"></div>\n" +
-                "       </div>\n" +
-                "   </div>\n" +
-                "</div>"
+            "<div class=\"row\">\n"+
+            "    <div class=\"vs-grid col-sm-12\">\n"+
+            "        <div class=\"header-footer\" ng-if=\"hasFooterBar()\">\n"+
+            "            <div class=\"vs-header-bar\" ng-include=\"headerBar\" ng-style=\"getHeaderFooterStyle()\"></div>\n"+
+            "        </div>\n"+
+            "        <div class=\"fixed-table-container\" ng-style=\"styleContainer\" class=\"table table-bordered\" tabindex=\"0\" ng-keydown=\"onKeyDown($event)\" ng-keyup=\"onKeyUp($event)\">\n"+
+            "            <div class=\"table-header\">\n"+
+            "                <table class=\"table table-vision\">\n"+
+            "                    <thead>\n"+
+            "                        <tr>\n"+
+            "                           <th ng-repeat=\"column in columns track by $index\"\n"+
+            "                               class=\"vs-grid-column\"\n"+
+            "                               ng-show=\"column.visible\"\n"+
+            "                               ng-style=\"getColumnStyle(column, 'header')\"\n"+
+            "                               ng-class=\"{first: $first}\">\n"+
+            "                                   <div ng-style=\"headerStyle\" ng-show=\"isHeaderRenderer(column)\" ng-include=\"column.headerRenderer\"></div>\n"+
+            "                                   <div ng-style=\"headerStyle\" ng-show=\"!isHeaderRenderer(column)\">\n"+
+            "                                       <span ng-show=\"!column.sortable\" ng-bind=\"column.headerText\"></span>\n"+
+            "                                       <column-sort></column-sort>\n"+
+            "                                   </div>\n"+
+            "                            </th>\n"+
+            "                         </tr>\n"+
+            "                    </thead>\n"+
+            "               </table>\n"+
+            "            </div>\n"+
+            "            <div class=\"fixed-table-container-inner\" scrollbar ng-style=\"styleContainerInner\">\n"+
+            "                <div ng-style=\"viewPortStyle\" style=\"position: relative; display: block;\">\n"+
+            "                    <table class=\"table table-vision\" ng-style=\"tablePortStyle\">\n"+
+            "                        <tbody>\n"+
+            "                           <!--tabindex=\"{{$parent.$parent.$index}}{{$index+1}}\"-->\n"+
+            "                           <tr ng-repeat-start=\"item in renderedProvider track by $index\"\n"+
+            "                               ng-class=\"{rendered:item.isRendered}\"\n"+
+            "                               ng-style=\"getRowStyle(item)\">\n"+
+            "                               <td ng-repeat=\"column in columns track by $index\"\n"+
+            "                                   ng-show=\"column.visible\"\n"+
+            "                                   ng-mousedown=\"selectItem(item, column)\"\n"+
+            "                                   ng-dblclick=\"selectItemDblclick(item, column)\"\n"+
+            "                                   ng-class=\"selectClass(item)\"\n"+
+            "                                   ng-style=\"getColumnStyle(column)\">\n"+
+            "                                     <span ng-show=\"!isItemRenderer(item, column)\" ng-bind-html=\"getItem($parent.$index, item, column)\"></span>\n"+
+            "                                     <div ng-show=\"isItemRenderer(item, column)\" ng-include=\"column.itemRenderer\"></div>\n"+
+            "                               </td>\n"+
+            "                           </tr>\n"+
+            "                           <tr class=\"actions text-left\" ng-show=\"item.expandRowOpened\" ng-repeat-end>\n"+
+            "                               <td ng-include=\"expandRow\" colspan=\"{{columns.length}}\" ></td>\n"+
+            "                           </tr>\n"+
+            "                       </tbody>\n"+
+            "                   </table>\n"+
+            "               </div>\n"+
+            "           </div>\n"+
+            "       </div>\n"+
+            "       <div class=\"header-footer\" ng-if=\"hasFooterBar()\">\n"+
+            "           <div class=\"vs-footer-bar\" ng-include=\"footerBar\" ng-style=\"getHeaderFooterStyle()\"></div>\n"+
+            "       </div>\n"+
+            "   </div>\n"+
+            "</div>"
         );
 
         $templateCache.put("template/vision/grid/column-sort.html",
-                "<a ng-if=\"column.sortable\" ng-click=\"sortBy(column.fieldName)\">\n" +
-                "   <span ng-bind=\"column.headerText\"></span>\n" +
-                "   <i ng-class=\"selectSorterClass(column.fieldName)\"></i>\n" +
-                "</a>"
+            "<a ng-if=\"column.sortable\" ng-click=\"sortBy(column.fieldName)\">\n"+
+            "   <span ng-bind=\"column.headerText\"></span>\n"+
+            "   <i ng-class=\"selectSorterClass(column.fieldName)\"></i>\n"+
+            "</a>"
         );
 
         $templateCache.put("template/vision/grid/expandColumnRenderer.html",
-                "<a class=\"expand-row\" ng-click=\"openCloseExpandRow(item)\">\n" +
-                "   <i class=\"fa\" ng-class=\"{'fa-chevron-right': !item.expandRowOpened, 'fa-chevron-down': item.expandRowOpened}\"></i>\n" +
-                "</a>"
+            "<a class=\"expand-row\" ng-click=\"openCloseExpandRow(item)\">\n" +
+            "   <i class=\"fa\" ng-class=\"{'fa-chevron-right': !item.expandRowOpened, 'fa-chevron-down': item.expandRowOpened}\"></i>\n" +
+            "</a>"
         );
 
     }]);
-
+'use strict';
 
 angular.module('vision.grid.util', [])
 
@@ -948,76 +1041,3 @@ angular.module('vision.grid.util', [])
 
             return vsGridUtil;
         }]);
-
-
-/**
- * GridColumn class definition
- * @constructor
- */
-var GridColumn = function (headerText, fieldName, width) {
-
-    this.headerText = headerText;
-    this.fieldName = fieldName;
-    this.sortable = true;
-
-    //function(item, column)
-    this.labelFunction = undefined;
-
-    //path do arquivo .html
-    this.headerRenderer = undefined;
-
-    //path do arquivo .html
-    this.itemRenderer = undefined;
-    this.itemEditor = undefined;
-
-    //px or %
-    this.width = width;
-
-    //left, center, right
-    this.headerTextAlign = 'left';
-    this.textAlign = 'left';
-    this.visible = true;
-};
-
-/**
- * GridColumnDecimal class definition
- * @constructor
- */
-var GridColumnDecimal = function (headerText, fieldName, width) {
-
-    GridColumn.call(this, headerText, fieldName, width);
-
-    this.textAlign = 'right';
-    this.centsLimit = 2;
-    this.centsSeparator = ',';
-    this.thousandsSeparator = '.';
-    this.useSymbol = false;
-};
-GridColumnDecimal.prototype = new GridColumn();
-
-/**
- * GridColumnDate class definition
- * @constructor
- */
-var GridColumnDate = function (headerText, fieldName, width) {
-    GridColumn.call(this, headerText, fieldName, width);
-
-    this.format = 'dd/MM/yyyy';
-};
-GridColumnDate.prototype = new GridColumn();
-
-/**
- * GridColumnEnum class definition
- * @param headerText
- * @param fieldName
- * @param width
- * @constructor
- */
-var GridColumnEnum = function (headerText, fieldName, width) {
-    GridColumn.call(this, headerText, fieldName, width);
-
-    this.labelField = undefined;
-    this.labelValue = undefined;
-    this.provider = [];
-};
-GridColumnEnum.prototype = new GridColumn();
