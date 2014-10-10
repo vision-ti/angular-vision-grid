@@ -1,12 +1,13 @@
 {
     "name": "angular-vision-grid",
     "version": "0.0.1-beta",
+    "main": "angular-vision-grid.js",
     "repository": {
         "type": "git",
         "url": "https://github.com/vision-ti/angular-vision-grid.git"
     },
     "authors": [
-        "VisionGrid Team"
+        "Felipe Leonhardt, VisionGrid Team"
     ],
     "description": "AngularJS data grid",
     "keywords": [
