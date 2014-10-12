@@ -1,0 +1,188 @@
+.vs-grid {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+/*
+ * Cor alternada
+ * Obs: Deve vir sempre em primeiro para que o hover esteja por cima
+ */
+.vs-grid .table-vision >tbody>tr:nth-child(4n+1){
+    background-color: #f9f9f9;
+}
+
+/*
+ * Cor do item selecionado(para tables com cores alternadas entre as rows
+ * Obs: Deve vir sempre em primeiro para que o hover esteja por cima
+ */
+.vs-grid .table-vision >tbody>tr:nth-child(odd) .selected-item{
+    background-color: #A4CEF7;
+}
+
+/*
+ * Cor do item selecionado
+ */
+.vs-grid .selected-item{
+    background-color: #A4CEF7;
+}
+
+/*
+ * Rollover
+ */
+.vs-grid table > tbody > tr:hover > td,
+.vs-grid table > tbody > tr:hover > th {
+    background:url("../images/grid/row_back.png") #ABD6FF repeat-x;
+    border-top:1px solid #8cb8df;
+    border-bottom:1px solid #8cb8df;
+}
+
+.vs-grid table > thead > tr > th,
+.vs-grid table > tbody > tr > td {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.vs-grid-column a {
+    cursor: pointer;
+}
+
+/*
+ * CSS que desabilita a seleção de texto em modo de seleçao múltipla de ítens
+ * Obs: Deve vir sempre em primeiro para que o hover esteja por cima
+ */
+.vs-grid table {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    table-layout:fixed;
+}
+
+.vs-grid .fixed-table-container {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #aaaaaa;
+}
+
+.vs-grid .fixed-table-container div table thead tr th {
+    background: #e8e8e8; /* Old browsers */
+    background: -moz-linear-gradient(top, #ffffff 0%, #e8e8e8 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#e8e8e8)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, #ffffff 0%,#e8e8e8 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, #ffffff 0%,#e8e8e8 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, #ffffff 0%,#e8e8e8 100%); /* IE10+ */
+    background: linear-gradient(top, #ffffff 0%,#e8e8e8 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e8e8e8',GradientType=0 ); /* IE6-9 */
+    padding-left: 5px;
+    padding-right: 5px;
+    vertical-align: middle;
+}
+
+.vs-grid .fixed-table-container-inner {
+    overflow: auto;
+    height: 100%;
+}
+
+.vs-grid .header-footer {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.vs-grid .table-header table {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.vs-grid .table-vision > tbody > tr.actions > td a {
+    padding: 10px;
+}
+
+
+/* Make clicks pass-through */
+#vs-grid-spinner {
+    pointer-events: none;
+    -webkit-pointer-events: none;
+    -webkit-transition: 350ms linear all;
+    -moz-transition: 350ms linear all;
+    -o-transition: 350ms linear all;
+    transition: 350ms linear all;
+
+    background: -moz-linear-gradient(top, #ffffff 0%, #e8e8e8 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#e8e8e8)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, #ffffff 0%,#e8e8e8 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, #ffffff 0%,#e8e8e8 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, #ffffff 0%,#e8e8e8 100%); /* IE10+ */
+    background: linear-gradient(top, #ffffff 0%,#e8e8e8 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e8e8e8',GradientType=0 ); /* IE6-9 */
+
+    -webkit-box-shadow: 0 0 2px 2px rgba(0,0,0,.09);
+    -moz-box-shadow: 0 0 2px 2px rgba(0,0,0,.09);
+    box-shadow: 0 0 2px 2px rgba(0,0,0,.09);
+}
+
+#vs-grid-spinner.ng-enter,
+#vs-grid-spinner.ng-leave.ng-leave-active {
+    opacity: 0;
+}
+
+#vs-grid-spinner.ng-enter.ng-enter-active,
+#vs-grid-spinner.ng-leave {
+    opacity: 1;
+}
+
+#vs-grid-spinner {
+    display: block;
+    position: fixed;
+    z-index: 100;
+    width: 100px;
+    margin-left: -50px;
+    top: 50%;
+    left: 50%;
+    text-align: center;
+    border: 1px solid #aaaaaa;
+    padding-top: 5px;
+}
+
+#vs-grid-spinner .spinner-icon {
+
+    width: 18px;
+    height: 18px;
+
+    border:  solid 2px transparent;
+    border-top-color:  #29d;
+    border-left-color: #29d;
+    border-radius: 10px;
+
+    -webkit-animation: vs-grid-spinner 400ms linear infinite;
+    -moz-animation:    vs-grid-spinner 400ms linear infinite;
+    -ms-animation:     vs-grid-spinner 400ms linear infinite;
+    -o-animation:      vs-grid-spinner 400ms linear infinite;
+    animation:         vs-grid-spinner 400ms linear infinite;
+}
+
+@-webkit-keyframes vs-grid-spinner {
+    0%   { -webkit-transform: rotate(0deg);   transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@-moz-keyframes vs-grid-spinner {
+    0%   { -moz-transform: rotate(0deg);   transform: rotate(0deg); }
+    100% { -moz-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@-o-keyframes vs-grid-spinner {
+    0%   { -o-transform: rotate(0deg);   transform: rotate(0deg); }
+    100% { -o-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@-ms-keyframes vs-grid-spinner {
+    0%   { -ms-transform: rotate(0deg);   transform: rotate(0deg); }
+    100% { -ms-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@keyframes vs-grid-spinner {
+    0%   { transform: rotate(0deg);   transform: rotate(0deg); }
+    100% { transform: rotate(360deg); transform: rotate(360deg); }
+}
