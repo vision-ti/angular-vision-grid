@@ -5,9 +5,9 @@ angular.module('vision.grid.util', [])
 /**
  * UtilGrid com labelFunction's úteis
  */
-    .factory('vsGridUtil', ['$filter',
+    .factory('vsGridUtil', ['$filter', '$locale',
 
-        function ($filter) {
+        function ($filter, $locale) {
 
             //private
             var formatNumber = function (useSymbol, number, centsLimit, centsSeparator, thousands_sep) {

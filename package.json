@@ -1,6 +1,6 @@
 {
   "name": "angular-vision-grid",
-  "version": "0.0.1-beta",
+  "version": "1.0.0-rc1",
   "license": "MIT",
   "devDependencies": {
     "grunt": "~0.4.5",
