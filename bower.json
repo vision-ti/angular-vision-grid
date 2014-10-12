@@ -1,26 +1,34 @@
 {
-    "name": "angular-vision-grid",
-    "version": "1.0.0-rc1",
-    "main": "dist/angular-vision-grid.js",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/vision-ti/angular-vision-grid.git"
-    },
-    "authors": [
-        "Felipe Leonhardt, VisionGrid Team"
-    ],
-    "description": "AngularJS data grid",
-    "keywords": [
-        "angular",
-        "grid",
-        "vision"
-    ],
-    "license": "MIT",
-    "ignore": [
-        "**/.*",
-        "node_modules",
-        "bower_components",
-        "test",
-        "tests"
-    ]
+  "name": "angular-vision-grid",
+  "version": "1.0.0-rc1",
+  "main": "dist/angular-vision-grid.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vision-ti/angular-vision-grid.git"
+  },
+  "authors": [
+    "Felipe Leonhardt, VisionGrid Team"
+  ],
+  "description": "AngularJS data grid",
+  "keywords": [
+    "angular",
+    "grid",
+    "vision"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.2.26",
+    "bootstrap": "~3.2.0",
+    "jquery": "~2.1.1"
+  },
+  "devDependencies": {
+    "angular-sanitize": "~1.2.26"
+  }
 }
