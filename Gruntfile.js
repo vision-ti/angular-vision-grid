@@ -30,7 +30,7 @@ module.exports = function(grunt) {
                 options: { livereload: true },
                 files: ['demo/**/*']
             }
-        },
+        }
     });
 
     /*config.set("concat.dist", {
