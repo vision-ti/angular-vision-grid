@@ -14,6 +14,53 @@ angular.module('vision.grid', ['vision.grid.util'])
         }
     }])
 
+    .directive('vseditCell', [function(){
+        return {
+            require: '^visionGrid',
+            replace: 'A',
+            link: function(scope, element, attrs, gridCtrl){
+
+                if (scope.column.editable){
+                    scope.cells.push({
+                        colIndex: attrs.colIndex,
+                        rowIndex: attrs.rowIndex,
+                        element: element,
+                        column: scope.column
+                    });
+                }
+
+                var setCellFocus = function(){
+                    var cell = scope.cells[gridCtrl.currentCell];
+                    if (cell){
+                        angular.element(cell.element).find('input')[0].focus();
+                    }
+                };
+
+                scope.columnFocus = function(){
+                    gridCtrl.currentCell = 0;
+                    setCellFocus();
+                };
+
+                scope.columnKeyDown = function($event){
+
+                    if ($event.keyCode == 9) {
+                        if ($event.shiftKey){
+                            gridCtrl.currentCell--;
+                        }else{
+                            gridCtrl.currentCell++;
+                        }
+                        setCellFocus();
+                    }
+                };
+
+                scope.hasFocus = function(rowIndex, colIndex){
+                    var cell = scope.cells[gridCtrl.currentCell];
+                    return cell && (String(rowIndex) + String(colIndex) == String(cell.rowIndex) + String(cell.colIndex));
+                };
+            }
+        }
+    }])
+
     /**
      * grid
      */
@@ -46,6 +93,8 @@ angular.module('vision.grid', ['vision.grid.util'])
                     minRows: '@'
                 },
                 controller: ['$scope', function ($scope) {
+
+                    this.currentCell = -1;
 
                     /**
                      * Disparado pelo grid column
@@ -240,7 +289,8 @@ angular.module('vision.grid', ['vision.grid.util'])
                             rangeEnd = Math.ceil((raw.scrollTop + raw.offsetHeight) / rowHeight);
                             if (raw.scrollTop + raw.offsetHeight <= viewPortHeight) {
                                 scope.tablePortStyle.top = raw.scrollTop + 'px';
-                                scope.$apply(scope.renderProvider(scope.gridProvider.slice(rangeStart, rangeEnd)));
+                                scope.renderProvider(scope.gridProvider.slice(rangeStart, rangeEnd))
+                                scope.$digest();
                             }
                         }
 
@@ -265,7 +315,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                         scope.styleContainerInner.height = (height - headerHeight) + 'px';
 
                         scope.renderProvider(scope.gridProvider, getVirtualRowsLength());
-                        scope.$apply();
+                        scope.$digest();
                     };
 
                     /**
@@ -287,33 +337,32 @@ angular.module('vision.grid', ['vision.grid.util'])
                         }
                     };
 
-                    /**
-                     * Atualiza o gridProvider
-                     */
-                    scope.$watch('provider', function (newValue, oldValue) {
-
+                    var updateProvider = function(){
                         clearSelection();
                         //Realiza a cópia do provider
                         scope.gridProvider = [];
 
                         if (scope.provider != null && scope.provider != undefined)
-                            angular.extend(scope.gridProvider, scope.provider);
+                            angular.copy(scope.provider, scope.gridProvider);
 
                         //$animate.enter(spinner, element);
 
                         //Faz o cálculo do height da viewPort para virtual scroll
-                        if (scope.virtualScrollEnabled && angular.isDefined(newValue) && newValue.length > 0) {
-                            viewPortHeight = newValue.length * rowHeight;
+                        if (scope.virtualScrollEnabled && angular.isDefined(scope.provider) && scope.provider.length > 0) {
+                            viewPortHeight = scope.provider.length * rowHeight;
                             scope.viewPortStyle.height = viewPortHeight + 'px';
                         }
 
-                        if (oldValue == undefined || newValue == undefined || newValue.length != oldValue.length) {
-                            $timeout(function () {
-                                raw.scrollTop = 0;
-                                innerContainer.scroll();
-                            });
-                        }
-                    }, true);
+                        $timeout(function () {
+                            raw.scrollTop = 0;
+                            innerContainer.scroll();
+                        });
+                    };
+
+                    scope.$watch('provider.length', function(newValue, oldValue){
+                        if (newValue != oldValue)
+                            updateProvider();
+                    });
 
                     /**
                      * Atualiza o renderedProvider
@@ -710,11 +759,6 @@ angular.module('vision.grid', ['vision.grid.util'])
                         scope.init({$ctrl: ctrl});
                         scope.$emit(scope.gridName + ':init', {$ctrl: ctrl});
                     }
-
-                    //$timeout(function(){
-                    //  $animate.leave(spinner);
-                    //});
-
                 }
             }
         }
@@ -758,10 +802,14 @@ angular.module('vision.grid', ['vision.grid.util'])
             "                               ng-class=\"{rendered:item.isRendered}\"\n"+
             "                               ng-style=\"getRowStyle(item)\">\n"+
             "                               <td ng-repeat=\"column in columns track by $index\"\n"+
-            "                                   ng-show=\"column.visible\"\n"+
+            "                                   ng-show=\"column.visible\" tabindex=\"{{$first && $parent.$index == 0 ? 0 : -1}}\"\n"+
             "                                   ng-mousedown=\"selectItem(item, column)\"\n"+
             "                                   ng-dblclick=\"selectItemDblclick(item, column)\"\n"+
             "                                   ng-class=\"selectClass(item)\"\n"+
+            "                                   ng-focus=\"columnFocus()\"\n"+
+            "                                   ng-blur=\"columnBlur($parent.$index, $index)\"\n"+
+            "                                   ng-keydown=\"columnKeyDown($event)\" \n"+
+            "                                   vsedit-cell row-index=\"{{$parent.$index}}\" col-index=\"{{$index}}\"\n"+
             "                                   ng-style=\"getColumnStyle(column)\">\n"+
             "                                     <span ng-show=\"!isItemRenderer(item, column)\" ng-bind-html=\"getItem($parent.$index, item, column)\"></span>\n"+
             "                                     <div ng-show=\"isItemRenderer(item, column)\" ng-include=\"column.itemRenderer\"></div>\n"+

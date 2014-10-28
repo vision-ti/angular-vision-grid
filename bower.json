@@ -1,3 +1,8 @@
+/**
+ *  bower install module_name --save to install new dependency
+ *  bower uninstall module_name to unistall dependency
+ *  bower update to download bower_components dependencies
+ */
 {
   "name": "angular-vision-grid",
   "version": "1.0.0-rc1",
@@ -26,9 +31,7 @@
   "dependencies": {
     "angular": "~1.2.26",
     "bootstrap": "~3.2.0",
-    "jquery": "~2.1.1"
-  },
-  "devDependencies": {
+    "jquery": "~2.1.1",
     "angular-sanitize": "~1.2.26"
   }
 }

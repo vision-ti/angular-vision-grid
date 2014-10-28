@@ -18,6 +18,7 @@ var GridColumn = function(headerText, fieldName, width){
 
     //path do arquivo .html
     this.itemRenderer = undefined;
+    this.editable = false;
     this.itemEditor = undefined;
 
     //px or %
