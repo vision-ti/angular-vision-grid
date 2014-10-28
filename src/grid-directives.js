@@ -337,31 +337,29 @@ angular.module('vision.grid', ['vision.grid.util'])
                         }
                     };
 
-                    var updateProvider = function(){
+                    scope.$watchCollection('provider', function (newValue, oldValue) {
+
                         clearSelection();
                         //Realiza a cópia do provider
                         scope.gridProvider = [];
 
                         if (scope.provider != null && scope.provider != undefined)
-                            angular.copy(scope.provider, scope.gridProvider);
+                            angular.extend(scope.gridProvider, scope.provider);
 
                         //$animate.enter(spinner, element);
 
                         //Faz o cálculo do height da viewPort para virtual scroll
-                        if (scope.virtualScrollEnabled && angular.isDefined(scope.provider) && scope.provider.length > 0) {
-                            viewPortHeight = scope.provider.length * rowHeight;
+                        if (scope.virtualScrollEnabled && angular.isDefined(newValue) && newValue.length > 0) {
+                            viewPortHeight = newValue.length * rowHeight;
                             scope.viewPortStyle.height = viewPortHeight + 'px';
                         }
 
-                        $timeout(function () {
-                            raw.scrollTop = 0;
-                            innerContainer.scroll();
-                        });
-                    };
-
-                    scope.$watch('provider.length', function(newValue, oldValue){
-                        if (newValue != oldValue)
-                            updateProvider();
+                        if (oldValue == undefined || newValue == undefined || newValue.length != oldValue.length) {
+                            $timeout(function () {
+                                raw.scrollTop = 0;
+                                innerContainer.scroll();
+                            });
+                        }
                     });
 
                     /**
