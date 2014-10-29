@@ -21,17 +21,26 @@ angular.module('vision.grid', ['vision.grid.util'])
             link: function(scope, element, attrs, gridCtrl){
 
                 if (scope.column.editable){
-                    var position = attrs.rowIndex + attrs.colIndex;
-                    scope.cells[position] = {
-                        rowIndex: parseInt(attrs.rowIndex),
-                        colIndex: parseInt(attrs.colIndex),
-                        element: element,
-                        column: scope.column
-                    };
+                    var key = attrs.colIndex + attrs.rowIndex;
+                    if (scope.cellsCache[key] == undefined){
+                        var cell = {
+                            colIndex: parseInt(attrs.colIndex),
+                            rowIndex: parseInt(attrs.rowIndex),
+                            element: element,
+                            column: scope.column
+                        };
+                        scope.cellsCache[key] = cell;
+                        scope.cells.push(cell);
+                    }
                 }
 
+                scope.cellFocus = function(){
+                    gridCtrl.updateCellIndex(0);
+                };
+
                 scope.hasFocus = function(rowIndex, colIndex){
-                    return (String(rowIndex) + String(colIndex) == scope.cellIndex.current.position);
+                    var cell = scope.cells[gridCtrl.cellIndex.current];
+                    return cell && (String(rowIndex) + String(colIndex) == String(cell.rowIndex) + String(cell.colIndex));
                 };
             }
         }
@@ -81,12 +90,34 @@ angular.module('vision.grid', ['vision.grid.util'])
                 },
                 controller: ['$scope', '$element', '$attrs', function ($scope, $elment, $attrs) {
 
+                    this.cellIndex = {old: -1, current: -1};
+
+                    this.updateCellIndex = function(updateTo){
+
+                        var cell = $scope.cells[updateTo];
+                        if (cell){
+
+                            if ($attrs.cellBlur && this.cellIndex.old != this.cellIndex.current){
+                                $scope.cellBlur({$data: {
+                                    oldCell: $scope.cells[this.cellIndex.old],
+                                    cell: $scope.cells[this.cellIndex.current],
+                                    selectedItem: $scope.getData().selectedItem
+                                }
+                                });
+                            }
+
+                            this.cellIndex.old = this.cellIndex.current;
+                            this.cellIndex.current = updateTo;
+                            angular.element(cell.element).find('input')[0].focus();
+                        }
+                    };
+
                     this.nextCell = function(){
-                        $scope.goToCell($scope.cellIndex.current.colIndex + 1);
+                        this.updateCellIndex(this.cellIndex.current + 1);
                     };
 
                     this.previousCell = function(){
-                        $scope.goToCell($scope.cellIndex.current.colIndex - 1);
+                        this.updateCellIndex(this.cellIndex.current -1);
                     };
 
                     /**
@@ -200,8 +231,8 @@ angular.module('vision.grid', ['vision.grid.util'])
                     var commandKeyCode = isFirefox ? 224 : (isOpera ? 17 : 91 /* webkit */);
 
                     scope.outerScope = scope.$parent;
-                    scope.cells = {};
-                    scope.editableColumns = [];
+                    scope.cells = [];
+                    scope.cellsCache = {};
 
                     //Define se a expand-row será mantida aberta
                     scope.toggleExpandRow = vsGridUtil.getDefined(scope.toggleExpandRow, true);
@@ -290,21 +321,6 @@ angular.module('vision.grid', ['vision.grid.util'])
                         }
 
                     });
-
-                    /**
-                     * Change scroll position to rowIndex
-                     */
-                    scope.scrollToRowIndex = function(rowIndex){
-                        $timeout(function(){
-                            if (rowIndex < rangeStart){
-                                raw.scrollTop -= rowHeight;
-                                innerContainer.scroll();
-                            }else if (rowIndex + 1 > rangeEnd){
-                                raw.scrollTop += rowHeight;
-                                innerContainer.scroll();
-                            }
-                        });
-                    };
 
                     /**
                      * Return virtual rows lenght to render rows with no-data, for visual aspect
@@ -441,8 +457,6 @@ angular.module('vision.grid', ['vision.grid.util'])
                      */
                     scope.addColumnAt = function (index, column) {
 
-                        column.index = index;
-
                         if (column instanceof GridColumnDecimal && !angular.isDefined(column.labelFunction)) {
                             column.labelFunction = vsGridUtil.formatDecimal;
                         }
@@ -454,9 +468,6 @@ angular.module('vision.grid', ['vision.grid.util'])
                         if (column instanceof GridColumnEnum && !angular.isDefined(column.labelFunction)) {
                             column.labelFunction = vsGridUtil.formatEnum;
                         }
-
-                        if (column.editable)
-                            scope.editableColumns.push(column);
 
                         /**
                          * Evento disparado no $rootScope para configuração
@@ -621,7 +632,6 @@ angular.module('vision.grid', ['vision.grid.util'])
                             }else{
                                 ctrl.nextCell();
                             }
-                            $event.preventDefault();
                         }
 
                         if ($event.keyCode == 38 || $event.keyCode == 40) {
@@ -650,7 +660,16 @@ angular.module('vision.grid', ['vision.grid.util'])
                             }
 
                             scope.selectItem(scope.gridProvider[virtualIndex], scope.selectedColumn);
-                            scope.scrollToRowIndex(virtualIndex);
+
+                            $timeout(function(){
+                                if (virtualIndex < rangeStart){
+                                    raw.scrollTop -= rowHeight;
+                                    innerContainer.scroll();
+                                }else if (virtualIndex + 1 > rangeEnd){
+                                    raw.scrollTop += rowHeight;
+                                    innerContainer.scroll();
+                                }
+                            });
                         }
 
                         if (scope.selectionMode == 'multiple') {
@@ -659,58 +678,6 @@ angular.module('vision.grid', ['vision.grid.util'])
                         }
 
                         scope.$emit(scope.gridName + ':onKeyDown', $event);
-                    };
-
-                    scope.cellIndex = {current:{rowIndex: -1, colIndex: -1, position: '-1'}};
-                    scope.cellIndex.old = scope.cellIndex.current;
-
-                    scope.goToCell = function(colIndex){
-
-                        if (virtualIndex == undefined)
-                            virtualIndex = -1;
-
-                        if (scope.cellIndex.current.rowIndex == -1){
-                            scope.cellIndex.current.rowIndex = 0;
-                            scope.cellIndex.current.colIndex = 0;
-                        }
-
-                        var rowIndex = scope.cellIndex.current.rowIndex;
-                        if (colIndex < 0){
-                            virtualIndex--;
-                            rowIndex--;
-                            colIndex = scope.editableColumns[scope.editableColumns.length - 1].index;
-                        }else if (colIndex > scope.editableColumns.length -1){
-                            virtualIndex++;
-                            rowIndex++;
-                            colIndex = scope.editableColumns[0].index;
-                        }
-
-                        var position = String(rowIndex) + String(scope.editableColumns[colIndex].index);
-                        var cell = scope.cells[position];
-
-                        if (cell){
-
-                            if (attrs.cellBlur && scope.cellIndex.old != scope.cellIndex.current){
-                                scope.cellBlur({
-                                    $data:{
-                                        oldCell: scope.cells[scope.cellIndex.old.position],
-                                        cell: scope.cells[scope.cellIndex.current.position],
-                                        selectedItem: scope.getData().selectedItem
-                                    }
-                                });
-                            }
-
-                            scope.cellIndex.old = scope.cellIndex.current;
-                            scope.cellIndex.current.rowIndex = rowIndex;
-                            scope.cellIndex.current.colIndex = colIndex;
-                            scope.cellIndex.current.position = position;
-                            $timeout(function(){
-                                angular.element(cell.element).find('input')[0].focus();
-                            });
-                        }else if (rowIndex > scope.renderedProvider.length - 1){
-                            scope.scrollToRowIndex(virtualIndex);
-                            scope.goToCell(0);
-                        }
                     };
 
                     /**
@@ -917,3 +884,249 @@ angular.module('vision.grid', ['vision.grid.util'])
         );
 
     }]);
+'use strict';
+
+angular.module('vision.grid.util', [])
+
+/**
+ * UtilGrid com labelFunction's úteis
+ */
+    .factory('vsGridUtil', ['$filter', '$locale',
+
+        function ($filter, $locale) {
+
+            //private
+            var formatNumber = function (useSymbol, number, centsLimit, centsSeparator, thousands_sep) {
+
+                var symbol = "";
+
+                if (useSymbol)
+                    symbol = $locale.NUMBER_FORMATS.CURRENCY_SYM + " ";
+
+                if (thousands_sep == undefined)
+                    thousands_sep = $locale.NUMBER_FORMATS.GROUP_SEP;
+
+                if (centsSeparator == undefined)
+                    centsSeparator = $locale.NUMBER_FORMATS.DECIMAL_SEP;
+
+                var n = number,
+                    c = isNaN(centsLimit) ? 2 : Math.abs(centsLimit), //if decimal is zero we must take it, it means user does not want to show any decimal
+                    d = centsSeparator || '.', //if no decimal separator is passed we use the dot as default decimal separator (we MUST use a decimal separator)
+
+                    t = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep, //if you don't want to use a thousands separator you can pass empty string as thousands_sep value
+
+                    sign = (n < 0) ? '-' : '',
+
+                //extracting the absolute value of the integer part of the number and converting to string
+                    i = parseInt(n = Math.abs(n).toFixed(c)) + '',
+                    j;
+
+                j = ((j = i.length) > 3) ? j % 3 : 0;
+                return symbol + sign + (j ? i.substr(0, j) + t : '') + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : '');
+            };
+
+            //Os labelFunction's abaixo estão sendo setados na grid directive
+            var vsGridUtil = function() {};
+
+            /**
+             *  Procura o item pelo valor do labelValue e retorna o valor referente ao labelField
+             */
+            vsGridUtil.getValueOfLabelField = function(array, labelField, labelValue, value)
+            {
+                if (value != null)
+                {
+                    var item = vsGridUtil.getItemByPropertyValue(array, labelValue, value);
+                    return vsGridUtil.evaluate(item, labelField);
+                }
+                else
+                    return null;
+            };
+
+            /**
+             *  Retorna o item do Array pelo valor da propriedade do item
+             *  Para propriedade String os acentos e espaços são ignorados
+             *  <code>
+             * 	Ex:<br>
+             * 	 	listaDePessoas;<br>
+             *  	item = pessoa;<br>
+             * 		propridade = id;
+             *		getItemIndexByPropertyValue(listaDePessoas, id, 12);<br>
+             *  	Retorna a pessoa dentro da lista que tiver o id exatamente igual à 12;<br>
+             *  </code>
+             */
+            vsGridUtil.getItemByPropertyValue = function(array, property, value)
+            {
+                var index = vsGridUtil.getItemIndexByPropertyValue(array, property, value);
+                return index == -1 ? null : array[index];
+            };
+
+            /**
+             *  Retorna o índice do item do Array pelo valor da propriedade do item<br>
+             *  Para propriedade String os acentos e espaços são ignorados
+             *  <code>
+             * 	Ex:<br>
+             * 	 	listaDePessoas;<br>
+             *  	item = pessoa;<br>
+             * 		propridade = id;
+             *		getItemIndexByPropertyValue(listaDePessoas, id, 12);<br>
+             *  	Retorna índice da pessoa dentro da lista que tiver o id exatamente igual à 12;<br>
+             * </code>
+             */
+            vsGridUtil.getItemIndexByPropertyValue = function(array, property, value)
+            {
+                if (Util.isValorPreenchido(value) && array != null)
+                {
+                    var beanValue;
+                    var item;
+                    for (var i = 0; i < array.length; i++){
+                        item = array[i];
+                        beanValue = vsGridUtil.evaluate(item, property);
+                        beanValue = beanValue != null ? String(beanValue).toLowerCase() : null;
+                        value = String(value).toLowerCase();
+                        if (beanValue == value){
+                            return i;
+                        }
+                    }
+                }
+                return -1;
+            };
+
+            vsGridUtil.getDefined = function (value, elseValue) {
+                return angular.isDefined(value) ? value : elseValue;
+            };
+
+            vsGridUtil.evaluate = function (data, expression) {
+
+                var expressionPath = expression.split(".");
+
+                var itemData = data;
+                for (var i in expressionPath) {
+                    if (itemData != null)
+                        itemData = itemData[expressionPath[i]];
+                }
+
+                return itemData;
+            };
+
+            /**
+             * GridColumnDecimal.labelFunction
+             * @param item
+             * @param column
+             * @returns {string}
+             */
+            vsGridUtil.formatDecimal = function (item, column) {
+                var valueOf = vsGridUtil.evaluate(item, column.fieldName);
+                if (angular.isDefined(valueOf))
+                    return formatNumber(column.useSymbol, valueOf, column.centsLimit, column.decimalSeparator, column.thousandsSeparator);
+                else
+                    return '';
+            };
+
+            /**
+             * GridColumnDate.labelFunction
+             * @param item
+             * @param column
+             */
+            vsGridUtil.formatDate = function (item, column) {
+                var valueOf = vsGridUtil.evaluate(item, column.fieldName);
+                if (typeof valueOf == 'string')
+                    valueOf = new Date(valueOf);
+                return $filter('date')(valueOf, column.format);
+            };
+
+            /**
+             * GridColumnEnum.labelFunction
+             * @param item
+             * @param column
+             */
+            vsGridUtil.formatEnum = function (item, column) {
+                var valueOf = vsGridUtil.evaluate(item, column.fieldName);
+                valueOf = vsGridUtil.getValueOfLabelField(column.provider, column.labelField, column.labelValue, valueOf);
+                return valueOf == null ? '' : String(valueOf);
+            };
+
+            /**
+             * GridColumnIdentity.labelFunction
+             * @param item
+             * @param column
+             */
+            vsGridUtil.formatEntity = function (item, column) {
+                return vsGridUtil.evaluate(item, [column.fieldName.split('.')[0], column.labelField].join('.'));
+            };
+
+            return vsGridUtil;
+        }]);
+'use strict';
+
+/**
+ * GridColumn class definition
+ * @constructor
+ */
+var GridColumn = function(headerText, fieldName, width){
+
+    this.headerText = headerText;
+    this.fieldName = fieldName;
+    this.sortable = true;
+
+    //function(item, column)
+    this.labelFunction = undefined;
+
+    //path do arquivo .html
+    this.headerRenderer = undefined;
+
+    //path do arquivo .html
+    this.itemRenderer = undefined;
+    this.editable = false;
+    this.itemEditor = undefined;
+
+    //px or %
+    this.width = width;
+
+    //left, center, right
+    this.headerTextAlign = 'left';
+    this.textAlign = 'left';
+    this.visible = true;
+};
+
+/**
+ * GridColumnDecimal class definition
+ * @constructor
+ */
+var GridColumnDecimal = function(headerText, fieldName, width){
+
+    GridColumn.call(this, headerText, fieldName, width);
+
+    this.textAlign = 'right';
+    this.centsLimit = 2;
+    this.centsSeparator = ',';
+    this.thousandsSeparator = '.';
+    this.useSymbol = false;
+};
+GridColumnDecimal.prototype = new GridColumn();
+
+/**
+ * GridColumnDate class definition
+ * @constructor
+ */
+var GridColumnDate = function(headerText, fieldName, width){
+    GridColumn.call(this, headerText, fieldName, width);
+
+    this.format = 'dd/MM/yyyy';
+};
+GridColumnDate.prototype = new GridColumn();
+
+/**
+ * GridColumnEnum class definition
+ * @param headerText
+ * @param fieldName
+ * @param width
+ * @constructor
+ */
+var GridColumnEnum = function(headerText, fieldName, width){
+    GridColumn.call(this, headerText, fieldName, width);
+
+    this.labelField = undefined;
+    this.labelValue = undefined;
+    this.provider = [];
+};
+GridColumnEnum.prototype = new GridColumn();
