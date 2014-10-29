@@ -8,13 +8,16 @@ module.exports = function(grunt) {
     grunt.initConfig({
         concat: {
             dist:{
-                src: "src/*.js",
+                src: ["src/grid-directives.js", "src/grid-util.js", "src/grid-columns.js"],
                 dest: "dist/angular-vision-grid.js"
             }
         },
         uglify: {
-            options: {report: 'gzip'},
-            "dist/angular-vision-grid.js": "dist/angular-vision-grid.min.js"
+            dist: {
+                options: {report: 'gzip'},
+                src: "dist/angular-vision-grid.js",
+                dest: "dist/angular-vision-grid.min.js"
+            }
         },
         connect: {
             options: {
