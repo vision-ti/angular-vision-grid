@@ -1,7 +1,3 @@
-/**
- * npm install grunt-contrib-concat --save-dev to install new module
- * npm install to download all modules
- */
 {
   "name": "angular-vision-grid",
   "version": "1.0.0-rc1",
