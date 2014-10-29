@@ -1,5 +1,11 @@
 'use strict';
 
+/*
+ * angular-vision-grid
+ * v1.0.0-rc2
+ * (c) 2014 VisionGrid Team http://vision-ti.com.br
+ * License: MIT
+ */
 angular.module('vision.grid', ['vision.grid.util'])
 
     /**
