@@ -53,4 +53,8 @@ function TesteController($scope){
         coluna = new GridColumnDate('Data', 'data', '100px');
         $ctrl.addColumn(coluna);
     }
+
+    $scope.dgAlunosCellBlur = function($data){
+        console.log($data);
+    }
 }
