@@ -346,7 +346,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                         scope.renderedProvider.length = length;
                         for (var i = 0; i < length || i < minRows; i++) {
                             if (angular.isDefined(rows[i])) {
-                                scope.renderedProvider[i] = {item:rows[i]};
+                                scope.renderedProvider[i] = {isRendered:true, item:rows[i]};
                             } else {
                                 scope.renderedProvider[i] = {};
                             }
@@ -608,8 +608,8 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * @returns {string}
                      */
                     scope.selectClass = function (item) {
-                        if ((item == scope.selectedItem && scope.selectionMode == 'single')
-                            || (scope.selectedItems.indexOf(item) != -1 && scope.selectionMode == 'multiple')) {
+                        if (item && ((item == scope.selectedItem && scope.selectionMode == 'single')
+                            || (scope.selectedItems.indexOf(item) != -1 && scope.selectionMode == 'multiple'))) {
                             return 'selected-item';
                         } else
                             return '';

@@ -29,8 +29,8 @@
 /*
  * Rollover
  */
-.vs-grid table > tbody > tr:hover > td,
-.vs-grid table > tbody > tr:hover > th {
+.vs-grid table > tbody > tr.rendered:hover > td,
+.vs-grid table > tbody > tr.rendered:hover > th{
     background:url("../images/grid/row_back.png") #ABD6FF repeat-x;
     border-top:1px solid #8cb8df;
     border-bottom:1px solid #8cb8df;
