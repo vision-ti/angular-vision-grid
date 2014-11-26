@@ -2,7 +2,7 @@
 
 /*
  * angular-vision-grid
- * v1.0.0-rc2
+ * v1.0.0-rc3
  * (c) 2014 VisionGrid Team http://vision-ti.com.br
  * License: MIT
  */
@@ -873,7 +873,7 @@ angular.module('vision.grid', ['vision.grid.util'])
             "                    </thead>\n"+
             "               </table>\n"+
             "            </div>\n"+
-            "            <div class=\"fixed-table-container-inner\" scrollbar ng-style=\"styleContainerInner\">\n"+
+            "            <div class=\"fixed-table-container-inner\" ng-style=\"styleContainerInner\">\n"+
             "                <div ng-style=\"viewPortStyle\" style=\"position: relative; display: block;\">\n"+
             "                    <table class=\"table table-bordered table-vision\" ng-style=\"tablePortStyle\">\n"+
             "                        <tbody>\n"+
@@ -923,13 +923,12 @@ angular.module('vision.grid', ['vision.grid.util'])
         );
 
     }]);
-'use strict';
 
 angular.module('vision.grid.util', [])
 
-/**
- * UtilGrid com labelFunction's úteis
- */
+    /**
+     * UtilGrid com labelFunction's úteis
+     */
     .factory('vsGridUtil', ['$filter', '$locale',
 
         function ($filter, $locale) {
@@ -1095,7 +1094,6 @@ angular.module('vision.grid.util', [])
 
             return vsGridUtil;
         }]);
-'use strict';
 
 /**
  * GridColumn class definition

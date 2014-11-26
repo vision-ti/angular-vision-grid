@@ -6,12 +6,12 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
 
     grunt.initConfig({
-        concat: {
+        /*concat: {
             dist:{
                 src: ["src/grid-directives.js", "src/grid-util.js", "src/grid-columns.js"],
                 dest: "dist/angular-vision-grid.js"
             }
-        },
+        },*/
         uglify: {
             dist: {
                 options: {report: 'gzip'},
@@ -47,6 +47,7 @@ module.exports = function(grunt) {
         , dest: "dist/angular-vision-grid.min.js"
     });*/
 
-    grunt.registerTask("default", ['concat', 'uglify']);
+    //grunt.registerTask("default", ['concat', 'uglify']);
+    grunt.registerTask("default", ['uglify']);
     grunt.registerTask('serve', ['connect', 'watch']);
 };
