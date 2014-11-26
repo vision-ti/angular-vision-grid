@@ -873,7 +873,7 @@ angular.module('vision.grid', ['vision.grid.util'])
             "                    </thead>\n"+
             "               </table>\n"+
             "            </div>\n"+
-            "            <div class=\"fixed-table-container-inner\" scrollbar ng-style=\"styleContainerInner\">\n"+
+            "            <div class=\"fixed-table-container-inner\" ng-style=\"styleContainerInner\">\n"+
             "                <div ng-style=\"viewPortStyle\" style=\"position: relative; display: block;\">\n"+
             "                    <table class=\"table table-bordered table-vision\" ng-style=\"tablePortStyle\">\n"+
             "                        <tbody>\n"+
