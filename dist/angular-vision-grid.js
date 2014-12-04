@@ -66,6 +66,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                 scope: {
                     init: '&',
                     provider: '=?',
+                    sortFunction: '&',
                     onSelect: '&',
                     itemDoubleClick: '&',
                     cellBlur: '&',
@@ -195,6 +196,14 @@ angular.module('vision.grid', ['vision.grid.util'])
                      */
                     this.setOuterScope = function (outerScope) {
                         $scope.outerScope = outerScope;
+                    };
+
+                    /**
+                     * Configura o sortFunction
+                     * @param sortFunction
+                     */
+                    this.setSortFunction = function (sortFunction) {
+                        $scope.sortFunction = sortFunction;
                     };
                 }],
                 link: function (scope, element, attrs, ctrl) {
@@ -736,7 +745,7 @@ angular.module('vision.grid', ['vision.grid.util'])
 
                     //Sort object
                     scope.sort = {
-                        sortingField: 'id',
+                        sortingField: null,
                         reverse: false
                     };
 
@@ -765,7 +774,12 @@ angular.module('vision.grid', ['vision.grid.util'])
                         }
 
                         scope.sort.sortingField = newSortingField;
-                        scope.gridProvider = $filter('orderBy')(scope.provider, scope.sort.sortingField, scope.sort.reverse);
+
+                        //Função disparada para realizar a ordenação dos dados da grid
+                        if (angular.isDefined(attrs.sortFunction))
+                            scope.sortFunction({$sort: scope.sort});
+                        else
+                            scope.gridProvider = $filter('orderBy')(scope.provider, scope.sort.sortingField, scope.sort.reverse);
                     };
 
                     /**
@@ -1068,7 +1082,7 @@ angular.module('vision.grid.util', [])
             vsGridUtil.formatDate = function (item, column) {
                 var valueOf = vsGridUtil.evaluate(item, column.fieldName);
                 if (typeof valueOf == 'string')
-                    valueOf = new Date(valueOf);
+                    valueOf = new Date(moment(valueOf,'YYYY-MM-DD HH:mm:ss').toISOString());
                 return $filter('date')(valueOf, column.format);
             };
 

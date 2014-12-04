@@ -1,6 +1,6 @@
 var exampleApp = angular.module('exampleApp', ['ngSanitize', 'vision.grid']);
 
-function TesteController($scope){
+function TesteController($scope, $filter){
 
     $scope.alunos = [
         {id: 1, nome: 'Felipe', telefone: '3281-8761', cidade: 'Goiânia', data: new Date()},
@@ -406,5 +406,9 @@ function TesteController($scope){
 
     $scope.dgAlunosCellBlur = function($data){
         console.log($data);
+    }
+
+    $scope.dgAlunosSort = function($sort){
+        $scope.alunos = $filter('orderBy')($scope.alunos, $sort.sortingField, $sort.reverse)
     }
 }

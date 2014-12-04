@@ -11,6 +11,7 @@
     <script src="../bower_components/bootstrap/dist/js/bootstrap.js"></script>
     <script src="../bower_components/angular/angular.js"></script>
     <script src="../bower_components/angular-sanitize/angular-sanitize.js"></script>
+    <script src="../bower_components/moment/moment.js"></script>
 
     <script src="../dist/angular-vision-grid.js"></script>
 
@@ -78,6 +79,7 @@
             row-height="40px"
             virtual-scroll-enabled="true"
             cell-blur="dgAlunosCellBlur($data)"
+            sort-function="dgAlunosSort($sort)"
             >
 
     </vision-grid>
