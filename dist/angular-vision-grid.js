@@ -775,8 +775,11 @@ angular.module('vision.grid', ['vision.grid.util'])
 
                         scope.sort.sortingField = newSortingField;
 
+                        if (!angular.isDefined(attrs.sortFunction))
+                            scope.sortFunction = undefined;
+
                         //Função disparada para realizar a ordenação dos dados da grid
-                        if (angular.isDefined(attrs.sortFunction))
+                        if (angular.isDefined(scope.sortFunction))
                             scope.sortFunction({$sort: scope.sort});
                         else
                             scope.gridProvider = $filter('orderBy')(scope.provider, scope.sort.sortingField, scope.sort.reverse);
