@@ -851,7 +851,9 @@ angular.module('vision.grid', ['vision.grid.util'])
                      */
                     if (angular.isDefined(attrs.init)) {
                         scope.init({$ctrl: ctrl});
-                        scope.$emit(scope.gridName + ':init', {$ctrl: ctrl});
+                        $timeout(function() {
+                            scope.$emit(scope.gridName + ':init', {$ctrl: ctrl});
+                        });
                     }
                 }
             }
@@ -931,8 +933,8 @@ angular.module('vision.grid', ['vision.grid.util'])
         );
 
         $templateCache.put("template/vision/grid/expandColumnRenderer.html",
-            "<a class=\"expand-row\" ng-click=\"openCloseExpandRow(item)\">\n" +
-            "   <i class=\"fa\" ng-class=\"{'fa-chevron-right': !item.expandRowOpened, 'fa-chevron-down': item.expandRowOpened}\"></i>\n" +
+            "<a class=\"expand-row\" ng-click=\"openCloseExpandRow(row)\">\n" +
+            "   <i class=\"fa\" ng-class=\"{'fa-chevron-right': !row.expandRowOpened, 'fa-chevron-down': row.expandRowOpened}\"></i>\n" +
             "</a>"
         );
 
@@ -1026,7 +1028,7 @@ angular.module('vision.grid.util', [])
              */
             vsGridUtil.getItemIndexByPropertyValue = function(array, property, value)
             {
-                if (Util.isValorPreenchido(value) && array != null)
+                if (angular.isDefined(value) && array != null)
                 {
                     var beanValue;
                     var item;
