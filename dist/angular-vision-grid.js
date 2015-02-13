@@ -73,6 +73,7 @@ angular.module('vision.grid', ['vision.grid.util'])
                     height: '@',
                     selectionMode: '@',
                     headerHeight: '@',
+                    groupHeaderHeight: '@',
                     rowHeight: '@',
                     rowColorFunction: '&',
                     rowColorField: '@',
@@ -97,10 +98,38 @@ angular.module('vision.grid', ['vision.grid.util'])
                     };
 
                     /**
-                     * Disparado pelo grid column
+                     * Adiciona um grupo de colunas
+                     * @param columnsGroup
+                     */
+                    this.addColumnsGroup = function (columnsGroup) {
+                        this.addColumnsGroupAt($scope.columns.length, columnsGroup);
+                    };
+
+                    /**
+                     * Adiciona um group de colunas em uma posição específica
+                     * @param index
+                     * @param columnsGroup
+                     */
+                    this.addColumnsGroupAt = function (index, columnsGroup) {
+                        var columns = columnsGroup.getColumns();
+                        for (var i = 0; i < columns.length; i++) {
+                            if (!angular.isDefined(columns[i].fieldName)) {
+                                throw 'When adding gridColumn, fieldName is required!';
+                            }
+                            columns[i].indexInTheGroup = i;
+                            $scope.addColumnAt(index + i, columns[i]);
+                        }
+                    };
+
+                    /**
+                     * Adiciona uma coluna
                      * @param column
                      */
                     this.addColumn = function (column) {
+                        if (column.getGroup() != null) {
+                            throw 'When adding grouped gridColumns, use the addColumnsGroup or addColumnsGroupAt functions!';
+                        }
+
                         this.addColumnAt($scope.columns.length, column);
                     };
 
@@ -113,6 +142,8 @@ angular.module('vision.grid', ['vision.grid.util'])
 
                         if (!angular.isDefined(column.fieldName)) {
                             throw 'When adding gridColumn, fieldName is required!';
+                        } else if (column.getGroup() != null) {
+                            throw 'When adding grouped gridColumns, use the addColumnsGroup or addColumnsGroupAt functions!';
                         }
 
                         $scope.addColumnAt(index, column);
@@ -244,20 +275,36 @@ angular.module('vision.grid', ['vision.grid.util'])
                     scope.tablePortStyle.position = 'relative';
 
                     scope.columns = [];
+                    scope.containsGroupedColumns = false;
 
-                    var minRows, headerHeight, height, rowHeight, viewPortHeight;
+                    var minRows, headerHeight, groupHeaderHeight, height, rowHeight, viewPortHeight;
 
                     // Define a quantidade mínima de linhas a serem exibidas na grid
                     scope.minRows = vsGridUtil.getDefined(scope.minRows, '0');
                     minRows = Number(scope.minRows);
 
-                    //Seta o headerHeight
+                    //Seta o headerHeight das colunas
                     scope.headerHeight = vsGridUtil.getDefined(scope.headerHeight, '30px');
+
                     headerHeight = Number(scope.headerHeight.replace('px', ''));
+                    //Seta o headerHeight no style do cabeçalho das colunas
                     scope.headerStyle = {};
                     scope.headerStyle.height = scope.headerHeight;
-                    scope.headerStyle.lineHeight = scope.headerHeight;
-                    // headerHeight
+                    scope.headerStyle.width = '100%';
+
+                    //Seta o headerHeight dos grupos de colunas
+                    scope.groupHeaderHeight = vsGridUtil.getDefined(scope.groupHeaderHeight, '15px');
+                    groupHeaderHeight = Number(scope.groupHeaderHeight.replace('px', ''));
+
+                    //Seta o headerHeight no style do cabeçalho dos grupos de colunas
+                    scope.groupHeaderStyle = {};
+                    scope.groupHeaderStyle.height = scope.groupHeaderHeight;
+                    scope.groupHeaderStyle.width = '100%';
+                    //Seta o headerHeight no style do cabeçalho das colunas agrupadas
+                    scope.groupedColumnsHeaderStyle = {};
+                    scope.groupedColumnsHeaderStyle.height = (headerHeight - groupHeaderHeight) + 'px';
+                    scope.groupedColumnsHeaderStyle.width = '100%';
+
 
                     attrs.rowHeight = vsGridUtil.getDefined(scope.rowHeight, '30px');
                     rowHeight = Number(attrs.rowHeight.replace('px', ''));
@@ -434,15 +481,39 @@ angular.module('vision.grid', ['vision.grid.util'])
                         var columnStyle = {};
                         if (position == 'header') {
                             columnStyle.textAlign = column.headerTextAlign;
-                        } else {
+                        } else if (position != 'group-header') {
                             columnStyle.textAlign = column.textAlign;
                         }
 
-                        if (angular.isDefined(column.width))
-                            columnStyle.width = column.width;
-                        else {
-                            columnStyle.minWidth = '80px';
-                            columnStyle.width = 'auto !important';
+                        if (position == 'group-header') {
+                            columnStyle.textAlign = 'center';
+
+                            var width = 0;
+                            var widthAuto = false;
+
+                            var columns = column.getGroup().getColumns();
+                            for (var i = 0; i < columns.length; i++) {
+                                if (angular.isDefined(columns[i].width)) {
+                                    width += Number(columns[i].width.replace('px', ''));
+                                } else {
+                                    width += 80;
+                                    widthAuto = true;
+                                }
+                            }
+
+                            if (!widthAuto) {
+                                columnStyle.width = width + 'px';
+                            } else {
+                                columnStyle.minWidth =  width + 'px';
+                                columnStyle.width = 'auto !important';
+                            }
+                        } else {
+                            if (angular.isDefined(column.width))
+                                columnStyle.width = column.width;
+                            else {
+                                columnStyle.minWidth = '80px';
+                                columnStyle.width = 'auto !important';
+                            }
                         }
 
                         return columnStyle;
@@ -455,6 +526,9 @@ angular.module('vision.grid', ['vision.grid.util'])
                      * @param column
                      */
                     scope.addColumnAt = function (index, column) {
+
+                        if (!scope.containsGroupedColumns && column.getGroup() != null)
+                            scope.containsGroupedColumns = true;
 
                         column.index = index;
 
@@ -878,17 +952,33 @@ angular.module('vision.grid', ['vision.grid.util'])
             "                    <thead>\n"+
             "                        <tr>\n"+
             "                           <th ng-repeat=\"column in columns track by $index\"\n"+
+            "                               ng-if=\"column.getGroup() == null || column.indexInTheGroup == 0\"\n"+
             "                               class=\"vs-grid-column\"\n"+
-            "                               ng-show=\"column.visible\"\n"+
-            "                               ng-style=\"getColumnStyle(column, 'header')\"\n"+
+            "                               rowspan=\"{{!containsGroupedColumns || column.getGroup() != null ? 1 : 2}}\"\n"+
+            "                               colspan=\"{{!containsGroupedColumns || column.getGroup() == null ? 1 : column.getGroup().getColumns().length}}\"\n"+
+            "                               ng-show=\"column.getGroup() == null ? column.visible : column.getGroup().visible\"\n"+
+            "                               ng-style=\"getColumnStyle(column, column.getGroup() == null ? 'header' : 'group-header')\"\n"+
             "                               ng-class=\"{first: $first}\">\n"+
-            "                                   <div ng-style=\"headerStyle\" ng-show=\"isHeaderRenderer(column)\" ng-include=\"column.headerRenderer\"></div>\n"+
-            "                                   <div ng-style=\"headerStyle\" ng-show=\"!isHeaderRenderer(column)\">\n"+
-            "                                       <span ng-show=\"!column.sortable\" ng-bind=\"column.headerText\"></span>\n"+
-            "                                       <column-sort></column-sort>\n"+
+            "                                   <div ng-style=\"column.getGroup() == null ? headerStyle : groupHeaderStyle\" ng-show=\"isHeaderRenderer(column.getGroup() == null ? column : column.getGroup())\" ng-include=\"column.getGroup() == null ? column.headerRenderer : column.getGroup().headerRenderer\"></div>\n"+
+            "                                   <div ng-style=\"column.getGroup() == null ? headerStyle : groupHeaderStyle\" ng-show=\"!isHeaderRenderer(column.getGroup() == null ? column : column.getGroup())\">\n"+
+            "                                       <span ng-show=\"column.getGroup() != null || !column.sortable\" ng-bind=\"column.getGroup() == null ? column.headerText : column.getGroup().headerText\"></span>\n"+
+            "                                       <column-sort ng-if=\"column.getGroup() == null && column.sortable\"></column-sort>\n"+
             "                                   </div>\n"+
             "                            </th>\n"+
-            "                         </tr>\n"+
+            "                        </tr>\n"+
+            "                        <tr ng-if=\"containsGroupedColumns\">\n"+
+            "                           <th ng-repeat=\"column in columns track by $index\"\n"+
+            "                               ng-if=\"column.getGroup() != null\"\n"+
+            "                               class=\"vs-grid-column\"\n"+
+            "                               ng-style=\"getColumnStyle(column, 'header')\"\n"+
+            "                               ng-class=\"{first: $first}\">\n"+
+            "                                   <div ng-style=\"groupedColumnsHeaderStyle\" ng-show=\"isHeaderRenderer(column)\" ng-include=\"column.headerRenderer\"></div>\n"+
+            "                                   <div ng-style=\"groupedColumnsHeaderStyle\" ng-show=\"!isHeaderRenderer(column)\">\n"+
+            "                                       <span ng-show=\"!column.sortable\" ng-bind=\"column.headerText\"></span>\n"+
+            "                                       <column-sort ng-if=\"column.sortable\"></column-sort>\n"+
+            "                                   </div>\n"+
+            "                            </th>\n"+
+            "                        </tr>\n"+
             "                    </thead>\n"+
             "               </table>\n"+
             "            </div>\n"+
@@ -929,7 +1019,7 @@ angular.module('vision.grid', ['vision.grid.util'])
         );
 
         $templateCache.put("template/vision/grid/column-sort.html",
-            "<a ng-if=\"column.sortable\" ng-click=\"sortBy(column.fieldName)\">\n"+
+            "<a ng-click=\"sortBy(column.fieldName)\">\n"+
             "   <span ng-bind=\"column.headerText\"></span>\n"+
             "   <i ng-class=\"selectSorterClass(column.fieldName)\"></i>\n"+
             "</a>"
@@ -1141,6 +1231,63 @@ var GridColumn = function(headerText, fieldName, width){
     //left, center, right
     this.headerTextAlign = 'left';
     this.textAlign = 'left';
+    this.visible = true;
+
+    //grupo de colunas do qual esta coluna faz parte
+    var group = null;
+    var settingGroup = false;
+    this.setGroup = function(newGroup) {
+        if (!settingGroup) {
+            settingGroup = true;
+            if (group != null) {
+                group.removeColumn(this);
+            }
+            if (newGroup != null) {
+                newGroup.removeColumn(this);
+            }
+            if (newGroup != null) {
+                newGroup.addColumn(this);
+            }
+            settingGroup = false;
+        } else {
+            group = newGroup;
+        }
+    };
+    this.getGroup = function() {
+        return group;
+    };
+};
+
+/**
+ * GridColumnsGroup class definition
+ * @constructor
+ */
+var GridColumnsGroup = function(headerText){
+
+    this.headerText = headerText;
+
+    //colunas do grupo
+    var columns = [];
+    this.addColumn = function(column) {
+        if (columns.indexOf(column) < 0) {
+            columns.push(column);
+            column.setGroup(this);
+        }
+    };
+    this.removeColumn = function(column) {
+        var columnIndex = columns.indexOf(column);
+        if (columnIndex >= 0) {
+            columns.splice(columnIndex, 1);
+            column.setGroup(null);
+        }
+    };
+    this.getColumns = function() {
+        return angular.extend([], columns);
+    };
+
+    //path do arquivo .html
+    this.headerRenderer = undefined;
+
     this.visible = true;
 };
 

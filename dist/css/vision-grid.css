@@ -36,7 +36,21 @@
     border-bottom:1px solid #8cb8df;
 }
 
-.vs-grid table > thead > tr > th,
+.vs-grid table > thead > tr > th > div {
+    display: table;
+}
+
+.vs-grid table > thead > tr > th > div > column-sort,
+.vs-grid table > thead > tr > th > div > span {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.vs-grid table > thead > tr > th {
+    overflow: hidden;
+    white-space: normal;
+}
+
 .vs-grid table > tbody > tr > td {
     text-overflow: ellipsis;
     overflow: hidden;
