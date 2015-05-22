@@ -1177,7 +1177,7 @@ angular.module('vision.grid.util', [])
             vsGridUtil.formatDate = function (item, column) {
                 var valueOf = vsGridUtil.evaluate(item, column.fieldName);
                 if (typeof valueOf == 'string')
-                    valueOf = new Date(moment(valueOf,'YYYY-MM-DD HH:mm:ss').toISOString());
+                    valueOf = new Date(moment(valueOf,'YYYY-MM-DD HH:mm:ss.SSS').toISOString());
                 return $filter('date')(valueOf, column.format);
             };
 
