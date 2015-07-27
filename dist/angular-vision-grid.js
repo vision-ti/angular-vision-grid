@@ -1198,7 +1198,9 @@ angular.module('vision.grid.util', [])
              * @param column
              */
             vsGridUtil.formatEntity = function (item, column) {
-                return vsGridUtil.evaluate(item, [column.fieldName.split('.')[0], column.labelField].join('.'));
+                var splittedFieldName = column.fieldName.split('.');
+                splittedFieldName.splice(splittedFieldName.length - 1, 1, column.labelField);
+                return vsGridUtil.evaluate(item, splittedFieldName.join('.'));
             };
 
             return vsGridUtil;
